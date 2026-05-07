@@ -58,6 +58,12 @@ const API = {
   addMenu:           (data)      => http('POST',  '/menu', data),
   deleteMenu:        (id)        => http('DELETE', `/menu/${id}`),
 
+  // ── CATEGORIES ──────────────────────────────────────────
+  getCategories:    ()          => http('GET',    '/categories'),
+  addCategory:      (data)      => http('POST',   '/categories', data),
+  updateCategory:   (id, data)  => http('PUT',    `/categories/${id}`, data),
+  deleteCategory:   (id)        => http('DELETE', `/categories/${id}`),
+
   // ── TABLES ──────────────────────────────────────────────
   getTables:   ()          => http('GET',   '/tables'),
   getTable:    (id)        => http('GET',   `/tables/${id}`),
@@ -81,4 +87,9 @@ const API = {
   // ── SETTINGS ────────────────────────────────────────────
   getSettings:     ()        => http('GET',  '/settings'),
   updateSettings:  (data)    => http('PUT',  '/settings', data),
+
+  // ── VOID ────────────────────────────────────────────────
+  voidTable:       (tableId, reason) => http('POST', `/void/table/${tableId}`, { reason }),
+  voidBill:        (billId,  reason) => http('POST', `/void/bill/${billId}`,   { reason }),
+  getVoidHistory:  ()                => http('GET',  '/void/history'),
 };

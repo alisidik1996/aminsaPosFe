@@ -12,7 +12,7 @@ document.getElementById('boLogoutBtn').addEventListener('click', () => {
 });
 
 // ── Tab navigation ────────────────────────────────────────────
-let activeTab = 'menu';
+let activeTab = 'items';
 
 document.querySelectorAll('.bo-nav-item').forEach(btn => {
   btn.addEventListener('click', () => switchTab(btn.dataset.tab));
@@ -22,27 +22,34 @@ function switchTab(tab) {
   activeTab = tab;
   document.querySelectorAll('.bo-nav-item').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
   document.querySelectorAll('.bo-tab').forEach(s => s.classList.toggle('active', s.id === `tab-${tab}`));
-  const titles = { menu: 'Menu', stock: 'Manajemen Stok', users: 'Users', settings: 'Pengaturan' };
+  const titles = { items: 'Item', categories: 'Kategori', stock: 'Manajemen Stok', void: 'Void', users: 'Users', settings: 'Pengaturan' };
   document.getElementById('boPageTitle').textContent = titles[tab];
   const addBtn = document.getElementById('boAddBtn');
-  addBtn.style.display  = (tab === 'stock' || tab === 'settings') ? 'none' : '';
-  addBtn.textContent    = tab === 'users' ? '+ Tambah User' : '+ Tambah Menu';
-  if (tab === 'menu')     loadMenu();
-  if (tab === 'stock')    loadStock();
-  if (tab === 'users')    loadUsers();
-  if (tab === 'settings') loadSettings();
+  addBtn.style.display  = ['stock', 'void', 'settings'].includes(tab) ? 'none' : '';
+  addBtn.textContent    = tab === 'users' ? '+ Tambah User' : tab === 'categories' ? '+ Tambah Kategori' : '+ Tambah Item';
+  
+  if (tab === 'items')      loadMenu();
+  if (tab === 'categories') loadCategories();
+  if (tab === 'stock')      loadStock();
+  if (tab === 'void')       loadVoid();
+  if (tab === 'users')      loadUsers();
+  if (tab === 'settings')   loadSettings();
 }
 
 document.getElementById('boAddBtn').addEventListener('click', () => {
-  if (activeTab === 'menu')  openMenuModal(null);
-  if (activeTab === 'users') openUserModal(null);
+  if (activeTab === 'items')      openMenuModal(null);
+  if (activeTab === 'categories') openCategoryModal(null);
+  if (activeTab === 'users')      openUserModal(null);
 });
 
-// ══ MENU ══════════════════════════════════════════════════════
+// ══ ITEMS (MENU) ══════════════════════════════════════════════
 let allMenuItems = [];
+let allCategories = [];
 
 async function loadMenu() {
   allMenuItems = await API.getMenu();
+  allCategories = await API.getCategories();
+  
   const cats = [...new Set(allMenuItems.map(m => m.category))];
   const sel  = document.getElementById('menuCatFilter');
   sel.innerHTML = '<option value="">Semua Kategori</option>';
@@ -52,7 +59,7 @@ async function loadMenu() {
 
 function renderMenuTable(items) {
   const tbody = document.getElementById('menuTbody');
-  if (!items.length) { tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:2rem">Tidak ada menu</td></tr>'; return; }
+  if (!items.length) { tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:2rem">Tidak ada item</td></tr>'; return; }
   tbody.innerHTML = items.map(item => `
     <tr>
       <td><img src="${item.image || ''}" class="menu-thumb" onerror="this.style.background='#e2e8f0';this.src=''" /></td>
@@ -84,19 +91,27 @@ function filterMenu() {
 let editingMenuId = null;
 async function openMenuModal(id) {
   editingMenuId = id;
-  document.getElementById('menuModalTitle').textContent = id ? 'Edit Menu' : 'Tambah Menu';
+  document.getElementById('menuModalTitle').textContent = id ? 'Edit Item' : 'Tambah Item';
   document.getElementById('menuForm').reset();
   document.getElementById('mPreviewWrap').style.display = 'none';
   
+  // Populate kategori dropdown
+  const catSel = document.getElementById('mCategory');
+  catSel.innerHTML = '<option value="">-- Pilih Kategori --</option>';
+  allCategories.forEach(c => {
+    catSel.innerHTML += `<option value="${c.name}" data-station="${c.station}">${c.name}</option>`;
+  });
+  
   const stockField = document.getElementById('mStock');
+  const stationField = document.getElementById('mStation');
   
   if (id) {
     const item = allMenuItems.find(m => m.id === id);
     if (item) {
       document.getElementById('mName').value     = item.name;
       document.getElementById('mPrice').value    = item.price;
-      document.getElementById('mCategory').value = item.category;
-      document.getElementById('mStation').value  = item.station;
+      catSel.value                               = item.category;
+      stationField.value                         = item.station;
       stockField.value                           = item.stock;
       document.getElementById('mActive').value   = item.active;
       document.getElementById('mImage').value    = item.image || '';
@@ -108,7 +123,7 @@ async function openMenuModal(id) {
     stockField.style.cursor = 'not-allowed';
     document.getElementById('mStockHint').textContent = '(edit di tab Stok)';
   } else {
-    // Enable stok field saat tambah menu baru
+    // Enable stok field saat tambah item baru
     stockField.disabled = false;
     stockField.style.backgroundColor = '';
     stockField.style.cursor = '';
@@ -117,6 +132,14 @@ async function openMenuModal(id) {
   
   document.getElementById('menuModal').classList.remove('hidden');
 }
+
+// Auto-fill stasiun saat kategori dipilih
+document.getElementById('mCategory').addEventListener('change', function() {
+  const opt = this.options[this.selectedIndex];
+  if (opt && opt.dataset.station) {
+    document.getElementById('mStation').value = opt.dataset.station;
+  }
+});
 
 document.getElementById('mImage').addEventListener('input', function () {
   const wrap = document.getElementById('mPreviewWrap');
@@ -129,12 +152,14 @@ document.getElementById('menuModalCancel').addEventListener('click', () => docum
 document.getElementById('menuForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const data = {
-    name: document.getElementById('mName').value.trim(), price: parseInt(document.getElementById('mPrice').value),
-    category: document.getElementById('mCategory').value.trim(), station: document.getElementById('mStation').value,
+    name: document.getElementById('mName').value.trim(),
+    price: parseInt(document.getElementById('mPrice').value),
+    category: document.getElementById('mCategory').value,
+    station: document.getElementById('mStation').value,
     active: parseInt(document.getElementById('mActive').value),
     image: document.getElementById('mImage').value.trim(),
   };
-  // Stok hanya disertakan saat tambah menu baru (saat edit, field disabled)
+  // Stok hanya disertakan saat tambah item baru (saat edit, field disabled)
   if (!editingMenuId) {
     data.stock = parseInt(document.getElementById('mStock').value) || 0;
   }
@@ -150,38 +175,108 @@ document.getElementById('menuForm').addEventListener('submit', async (e) => {
 });
 
 async function deleteMenu(id, name) {
-  Modal.confirm('🗑️', 'Hapus Menu', `Hapus menu "${name}"?`, async () => {
+  Modal.confirm('🗑️', 'Hapus Item', `Hapus item "${name}"?`, async () => {
     try { await API.deleteMenu(id); await loadMenu(); }
     catch (err) { Modal.alert('❌', 'Gagal', err.message); }
   }, 'Ya, Hapus', 'Batal', 'btn-danger');
 }
 
-// ══ STOCK ══════════════════════════════════════════════════════
+// ══ CATEGORIES ════════════════════════════════════════════════
+async function loadCategories() {
+  allCategories = await API.getCategories();
+  renderCategoriesTable(allCategories);
+}
+
+function renderCategoriesTable(cats) {
+  const tbody = document.getElementById('catTbody');
+  if (!cats.length) { tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--text-muted);padding:2rem">Tidak ada kategori</td></tr>'; return; }
+  tbody.innerHTML = cats.map(c => `
+    <tr>
+      <td><strong>${c.name}</strong></td>
+      <td><span class="bo-badge bo-badge-${c.station}">${c.station === 'kitchen' ? '🍳 Kitchen' : '🍹 Bar'}</span></td>
+      <td><div class="bo-actions">
+        <button class="btn btn-outline btn-sm" onclick="openCategoryModal(${c.id})">✏️ Edit</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteCategory(${c.id}, '${c.name.replace(/'/g, "\\'")}')">🗑</button>
+      </div></td>
+    </tr>
+  `).join('');
+}
+
+let editingCategoryId = null;
+function openCategoryModal(id) {
+  editingCategoryId = id;
+  document.getElementById('catModalTitle').textContent = id ? 'Edit Kategori' : 'Tambah Kategori';
+  document.getElementById('catForm').reset();
+  if (id) {
+    const cat = allCategories.find(c => c.id === id);
+    if (cat) {
+      document.getElementById('cName').value = cat.name;
+      document.getElementById('cStation').value = cat.station;
+    }
+  }
+  document.getElementById('catModal').classList.remove('hidden');
+}
+
+document.getElementById('catModalCancel').addEventListener('click', () => document.getElementById('catModal').classList.add('hidden'));
+
+document.getElementById('catForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const data = {
+    name: document.getElementById('cName').value.trim(),
+    station: document.getElementById('cStation').value,
+  };
+  const saveBtn = document.getElementById('catModalSave');
+  saveBtn.disabled = true; saveBtn.textContent = 'Menyimpan...';
+  try {
+    if (editingCategoryId) await API.updateCategory(editingCategoryId, data);
+    else await API.addCategory(data);
+    document.getElementById('catModal').classList.add('hidden');
+    await loadCategories();
+  } catch (err) { Modal.alert('❌', 'Gagal', err.message); }
+  finally { saveBtn.disabled = false; saveBtn.textContent = 'Simpan'; }
+});
+
+async function deleteCategory(id, name) {
+  Modal.confirm('🗑️', 'Hapus Kategori', `Hapus kategori "${name}"?\n\nKategori yang masih digunakan tidak bisa dihapus.`, async () => {
+    try { await API.deleteCategory(id); await loadCategories(); }
+    catch (err) { Modal.alert('❌', 'Gagal', err.message); }
+  }, 'Ya, Hapus', 'Batal', 'btn-danger');
+}
+
+// ══ STOCK ═════════════════════════════════════════════════════
 let allStockItems = [];
 async function loadStock() {
   allStockItems = await API.getMenu();
   renderStockTable(allStockItems);
 }
+
 function renderStockTable(items) {
   const tbody = document.getElementById('stockTbody');
-  if (!items.length) { tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:2rem">Tidak ada menu</td></tr>'; return; }
-  tbody.innerHTML = items.map(item => `
+  if (!items.length) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:2rem">Tidak ada item</td></tr>'; return; }
+  tbody.innerHTML = items.map(item => {
+    const buffer = item.buffer_stock || 5;
+    return `
     <tr>
       <td><strong>${item.name}</strong></td>
       <td>${item.category}</td>
-      <td><span class="item-stock ${item.stock <= 5 ? 'stock-low' : item.stock <= 10 ? 'stock-mid' : 'stock-ok'}">${item.stock}</span></td>
+      <td><span class="item-stock ${item.stock <= buffer ? 'stock-low' : item.stock <= buffer * 2 ? 'stock-mid' : 'stock-ok'}">${item.stock}</span></td>
+      <td><span class="bo-badge" style="background:#f1f5f9;color:#64748b">${buffer}</span></td>
       <td><div class="stock-input-wrap">
         <input type="number" class="stock-input" id="stock-${item.id}" value="${item.stock}" min="0" />
-        <button class="btn btn-primary btn-sm" onclick="saveStock(${item.id})">Simpan</button>
+        <button class="btn btn-primary btn-sm" onclick="quickSaveStock(${item.id})">Simpan</button>
       </div></td>
+      <td><button class="btn btn-outline btn-sm" onclick="openStockModal(${item.id})">⚙️ Atur</button></td>
     </tr>
-  `).join('');
+  `;
+  }).join('');
 }
+
 document.getElementById('stockSearch').addEventListener('input', function () {
   const q = this.value.toLowerCase();
   renderStockTable(allStockItems.filter(m => m.name.toLowerCase().includes(q)));
 });
-async function saveStock(id) {
+
+async function quickSaveStock(id) {
   const input = document.getElementById(`stock-${id}`);
   const stock = parseInt(input.value);
   if (isNaN(stock) || stock < 0) { Modal.alert('⚠️', 'Input Tidak Valid', 'Stok harus angka >= 0'); return; }
@@ -190,17 +285,122 @@ async function saveStock(id) {
     const item = allStockItems.find(m => m.id === id);
     if (item) item.stock = stock;
     const span = input.closest('tr').querySelector('.item-stock');
-    if (span) { span.textContent = stock; span.className = `item-stock ${stock <= 5 ? 'stock-low' : stock <= 10 ? 'stock-mid' : 'stock-ok'}`; }
+    const buffer = item?.buffer_stock || 5;
+    if (span) { span.textContent = stock; span.className = `item-stock ${stock <= buffer ? 'stock-low' : stock <= buffer * 2 ? 'stock-mid' : 'stock-ok'}`; }
     Modal.alert('✅', 'Berhasil', `Stok "${item?.name}" diupdate ke ${stock}`);
   } catch (err) { Modal.alert('❌', 'Gagal', err.message); }
 }
 
-// ══ USERS ══════════════════════════════════════════════════════
+let editingStockItemId = null;
+function openStockModal(id) {
+  editingStockItemId = id;
+  const item = allStockItems.find(m => m.id === id);
+  if (!item) return;
+  document.getElementById('smItemName').value = item.name;
+  document.getElementById('smStock').value = item.stock;
+  document.getElementById('smBuffer').value = item.buffer_stock || 5;
+  document.getElementById('stockModal').classList.remove('hidden');
+}
+
+document.getElementById('stockModalCancel').addEventListener('click', () => document.getElementById('stockModal').classList.add('hidden'));
+
+document.getElementById('stockModalForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const stock = parseInt(document.getElementById('smStock').value);
+  const buffer = parseInt(document.getElementById('smBuffer').value);
+  if (isNaN(stock) || stock < 0 || isNaN(buffer) || buffer < 0) {
+    Modal.alert('⚠️', 'Input Tidak Valid', 'Stok dan buffer harus angka >= 0');
+    return;
+  }
+  const saveBtn = document.getElementById('stockModalSave');
+  saveBtn.disabled = true; saveBtn.textContent = 'Menyimpan...';
+  try {
+    await API.updateMenuStock(editingStockItemId, stock);
+    // TODO: jika ada endpoint untuk buffer_stock, update di sini
+    const item = allStockItems.find(m => m.id === editingStockItemId);
+    if (item) { item.stock = stock; item.buffer_stock = buffer; }
+    document.getElementById('stockModal').classList.add('hidden');
+    renderStockTable(allStockItems);
+    Modal.alert('✅', 'Berhasil', 'Stok dan buffer berhasil diupdate.');
+  } catch (err) { Modal.alert('❌', 'Gagal', err.message); }
+  finally { saveBtn.disabled = false; saveBtn.textContent = 'Simpan'; }
+});
+
+// ══ VOID ══════════════════════════════════════════════════════
+let activeTables = [];
+let voidHistory = [];
+
+async function loadVoid() {
+  activeTables = (await API.getTables()).filter(t => t.status === 'occupied');
+  voidHistory = await API.getVoidHistory();
+  renderVoidTables();
+  renderVoidHistory();
+}
+
+function renderVoidTables() {
+  const grid = document.getElementById('voidTableGrid');
+  if (!activeTables.length) {
+    grid.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:2rem">Tidak ada meja aktif</div>';
+    return;
+  }
+  grid.innerHTML = activeTables.map(t => `
+    <div class="void-table-card" onclick="openVoidModal(${t.id}, '${t.name}')">
+      <div class="void-table-icon">👥</div>
+      <div class="void-table-name">${t.name}</div>
+      <div class="void-table-time">⏱ ${getElapsed(t.openedAt)}</div>
+    </div>
+  `).join('');
+}
+
+function renderVoidHistory() {
+  const tbody = document.getElementById('voidHistoryTbody');
+  if (!voidHistory.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:2rem">Belum ada riwayat void</td></tr>';
+    return;
+  }
+  tbody.innerHTML = voidHistory.map(v => `
+    <tr>
+      <td>${v.id}</td>
+      <td>${v.table_name}</td>
+      <td>${formatRp(v.total)}</td>
+      <td>${v.kasir_name}</td>
+      <td style="font-size:.8rem">${formatDate(v.created_at)}</td>
+      <td style="font-size:.85rem;color:var(--text-muted)">${v.note || '-'}</td>
+    </tr>
+  `).join('');
+}
+
+let voidingTableId = null;
+function openVoidModal(tableId, tableName) {
+  voidingTableId = tableId;
+  document.getElementById('voidModalTitle').textContent = `Void ${tableName}`;
+  document.getElementById('voidModalDesc').textContent = `Semua pesanan di ${tableName} akan dibatalkan dan meja akan direset.`;
+  document.getElementById('voidReason').value = '';
+  document.getElementById('voidModal').classList.remove('hidden');
+}
+
+document.getElementById('voidModalCancel').addEventListener('click', () => document.getElementById('voidModal').classList.add('hidden'));
+
+document.getElementById('voidModalConfirm').addEventListener('click', async () => {
+  const reason = document.getElementById('voidReason').value.trim();
+  const btn = document.getElementById('voidModalConfirm');
+  btn.disabled = true; btn.textContent = 'Memproses...';
+  try {
+    await API.voidTable(voidingTableId, reason);
+    document.getElementById('voidModal').classList.add('hidden');
+    await loadVoid();
+    Modal.alert('✅', 'Berhasil', 'Meja berhasil di-void.');
+  } catch (err) { Modal.alert('❌', 'Gagal', err.message); }
+  finally { btn.disabled = false; btn.textContent = 'Ya, Void'; }
+});
+
+// ══ USERS ═════════════════════════════════════════════════════
 let allUsers = [];
 async function loadUsers() {
   allUsers = await API.getUsers();
   renderUsersTable(allUsers);
 }
+
 function renderUsersTable(users) {
   const tbody = document.getElementById('usersTbody');
   if (!users.length) { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:2rem">Tidak ada user</td></tr>'; return; }
@@ -230,7 +430,9 @@ function openUserModal(id) {
   }
   document.getElementById('userModal').classList.remove('hidden');
 }
+
 document.getElementById('userModalCancel').addEventListener('click', () => document.getElementById('userModal').classList.add('hidden'));
+
 document.getElementById('userForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const username = document.getElementById('uUsername').value.trim();
@@ -246,6 +448,7 @@ document.getElementById('userForm').addEventListener('submit', async (e) => {
     await loadUsers();
   } catch (err) { Modal.alert('❌', 'Gagal', err.message); }
 });
+
 async function deleteUser(id, username) {
   if (id === session.id) { Modal.alert('⚠️', 'Tidak Bisa', 'Tidak bisa menghapus akun yang sedang login.'); return; }
   Modal.confirm('🗑️', 'Hapus User', `Hapus user "${username}"?`, async () => {
@@ -254,7 +457,7 @@ async function deleteUser(id, username) {
   }, 'Ya, Hapus', 'Batal', 'btn-danger');
 }
 
-// ══ SETTINGS ═══════════════════════════════════════════════════
+// ══ SETTINGS ══════════════════════════════════════════════════
 async function loadSettings() {
   try {
     const settings = await API.getSettings();
@@ -292,4 +495,4 @@ document.getElementById('settingsForm').addEventListener('submit', async (e) => 
 });
 
 // ── Init ──────────────────────────────────────────────────────
-switchTab('menu');
+switchTab('items');

@@ -267,3 +267,59 @@
   box-sizing: border-box;
 }
 .bo-settings-card textarea:focus { border-color: var(--primary); }
+
+/* ── Void Tab ── */
+.bo-void-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.6fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.bo-void-panel {
+  background: var(--surface);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  padding: 1.5rem;
+}
+
+.bo-void-panel-title {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: .25rem;
+}
+
+.bo-void-panel-desc {
+  font-size: .85rem;
+  color: var(--text-muted);
+  margin-bottom: 1rem;
+}
+
+.void-table-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: .75rem;
+}
+
+.void-table-card {
+  background: #fff7ed;
+  border: 2px solid #fed7aa;
+  border-radius: 10px;
+  padding: .9rem .75rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all .15s;
+}
+.void-table-card:hover {
+  background: #ffedd5;
+  border-color: #f97316;
+  transform: translateY(-2px);
+}
+
+.void-table-icon { font-size: 1.5rem; margin-bottom: .25rem; }
+.void-table-name { font-weight: 700; font-size: .9rem; }
+.void-table-time { font-size: .75rem; color: #9a3412; margin-top: .2rem; }
+
+@media (max-width: 900px) {
+  .bo-void-grid { grid-template-columns: 1fr; }
+}

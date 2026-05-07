@@ -12,8 +12,10 @@
   <aside class="bo-sidebar">
     <div class="bo-logo">Waltie's Rooftop Cafe</div>
     <nav class="bo-nav">
-      <button class="bo-nav-item active" data-tab="menu">🍽 Menu</button>
+      <button class="bo-nav-item active" data-tab="items">🍽 Item</button>
+      <button class="bo-nav-item" data-tab="categories">🏷️ Kategori</button>
       <button class="bo-nav-item" data-tab="stock">📦 Stok</button>
+      <button class="bo-nav-item" data-tab="void">🚫 Void</button>
       <button class="bo-nav-item" data-tab="users">👥 Users</button>
       <button class="bo-nav-item" data-tab="settings">⚙️ Pengaturan</button>
     </nav>
@@ -22,14 +24,17 @@
       <button class="btn btn-outline btn-sm" id="boLogoutBtn">Logout</button>
     </div>
   </aside>
+
   <main class="bo-main">
     <header class="bo-header">
-      <h1 id="boPageTitle">Menu</h1>
+      <h1 id="boPageTitle">Item</h1>
       <button class="btn btn-primary" id="boAddBtn">+ Tambah</button>
     </header>
-    <section class="bo-tab active" id="tab-menu">
+
+    <!-- ══ Tab: Item ══ -->
+    <section class="bo-tab active" id="tab-items">
       <div class="bo-toolbar">
-        <input type="text" id="menuSearch" placeholder="🔍 Cari menu..." class="bo-search" />
+        <input type="text" id="menuSearch" placeholder="🔍 Cari item..." class="bo-search" />
         <select id="menuCatFilter" class="bo-select"><option value="">Semua Kategori</option></select>
       </div>
       <div class="bo-table-wrap">
@@ -39,17 +44,53 @@
         </table>
       </div>
     </section>
+
+    <!-- ══ Tab: Kategori ══ -->
+    <section class="bo-tab" id="tab-categories">
+      <div class="bo-table-wrap">
+        <table class="bo-table">
+          <thead><tr><th>Nama Kategori</th><th>Stasiun</th><th>Aksi</th></tr></thead>
+          <tbody id="catTbody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ══ Tab: Stok ══ -->
     <section class="bo-tab" id="tab-stock">
       <div class="bo-toolbar">
-        <input type="text" id="stockSearch" placeholder="🔍 Cari menu..." class="bo-search" />
+        <input type="text" id="stockSearch" placeholder="🔍 Cari item..." class="bo-search" />
       </div>
       <div class="bo-table-wrap">
         <table class="bo-table">
-          <thead><tr><th>Nama</th><th>Kategori</th><th>Stok Saat Ini</th><th>Update Stok</th></tr></thead>
+          <thead><tr><th>Nama</th><th>Kategori</th><th>Stok Saat Ini</th><th>Buffer Stok</th><th>Update Stok</th><th>Aksi</th></tr></thead>
           <tbody id="stockTbody"></tbody>
         </table>
       </div>
     </section>
+
+    <!-- ══ Tab: Void ══ -->
+    <section class="bo-tab" id="tab-void">
+      <div class="bo-void-grid">
+        <!-- Meja aktif -->
+        <div class="bo-void-panel">
+          <h3 class="bo-void-panel-title">🪑 Meja Aktif</h3>
+          <p class="bo-void-panel-desc">Pilih meja untuk melakukan void pesanan.</p>
+          <div id="voidTableGrid" class="void-table-grid"></div>
+        </div>
+        <!-- Riwayat void -->
+        <div class="bo-void-panel">
+          <h3 class="bo-void-panel-title">📋 Riwayat Void</h3>
+          <div class="bo-table-wrap" style="margin-top:.75rem">
+            <table class="bo-table">
+              <thead><tr><th>ID</th><th>Meja</th><th>Total</th><th>Kasir</th><th>Waktu</th><th>Keterangan</th></tr></thead>
+              <tbody id="voidHistoryTbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ Tab: Users ══ -->
     <section class="bo-tab" id="tab-users">
       <div class="bo-table-wrap">
         <table class="bo-table">
@@ -59,7 +100,7 @@
       </div>
     </section>
 
-    <!-- Tab Pengaturan -->
+    <!-- ══ Tab: Pengaturan ══ -->
     <section class="bo-tab" id="tab-settings">
       <div class="bo-settings-wrap">
         <div class="bo-settings-card">
@@ -97,17 +138,31 @@
     </section>
   </main>
 
-  <!-- Modal Menu -->
+  <!-- ══ Modal: Item ══ -->
   <div class="modal-overlay hidden" id="menuModal">
     <div class="modal bo-modal">
-      <h3 id="menuModalTitle">Tambah Menu</h3>
+      <h3 id="menuModalTitle">Tambah Item</h3>
       <form id="menuForm">
         <div class="bo-form-grid">
-          <div class="form-group"><label>Nama Menu</label><input type="text" id="mName" required placeholder="Nama menu" /></div>
+          <div class="form-group"><label>Nama Item</label><input type="text" id="mName" required placeholder="Nama item" /></div>
           <div class="form-group"><label>Harga (Rp)</label><input type="number" id="mPrice" required min="0" /></div>
-          <div class="form-group"><label>Kategori</label><input type="text" id="mCategory" required placeholder="Makanan / Minuman / Snack" /></div>
-          <div class="form-group"><label>Stasiun</label><select id="mStation"><option value="kitchen">🍳 Kitchen</option><option value="bar">🍹 Bar</option></select></div>
-          <div class="form-group"><label>Stok <span id="mStockHint" style="font-size:.75rem;color:var(--text-muted);font-weight:400"></span></label><input type="number" id="mStock" min="0" value="0" /></div>
+          <div class="form-group">
+            <label>Kategori</label>
+            <select id="mCategory" required>
+              <option value="">-- Pilih Kategori --</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Stasiun <span style="font-size:.75rem;color:var(--text-muted);font-weight:400">(otomatis dari kategori)</span></label>
+            <select id="mStation" disabled style="background:#f1f5f9;cursor:not-allowed">
+              <option value="kitchen">🍳 Kitchen</option>
+              <option value="bar">🍹 Bar</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Stok <span id="mStockHint" style="font-size:.75rem;color:var(--text-muted);font-weight:400"></span></label>
+            <input type="number" id="mStock" min="0" value="0" />
+          </div>
           <div class="form-group"><label>Status</label><select id="mActive"><option value="1">Aktif</option><option value="0">Nonaktif</option></select></div>
           <div class="form-group bo-full"><label>URL Foto</label><input type="text" id="mImage" placeholder="https://..." /></div>
           <div class="form-group bo-full" id="mPreviewWrap" style="display:none">
@@ -122,7 +177,77 @@
     </div>
   </div>
 
-  <!-- Modal User -->
+  <!-- ══ Modal: Kategori ══ -->
+  <div class="modal-overlay hidden" id="catModal">
+    <div class="modal bo-modal" style="max-width:400px">
+      <h3 id="catModalTitle">Tambah Kategori</h3>
+      <form id="catForm">
+        <div class="bo-form-grid" style="grid-template-columns:1fr">
+          <div class="form-group">
+            <label>Nama Kategori</label>
+            <input type="text" id="cName" required placeholder="Contoh: Makanan" />
+          </div>
+          <div class="form-group">
+            <label>Stasiun</label>
+            <select id="cStation" required>
+              <option value="kitchen">🍳 Kitchen</option>
+              <option value="bar">🍹 Bar</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" id="catModalCancel">Batal</button>
+          <button type="submit" class="btn btn-primary" id="catModalSave">Simpan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ══ Modal: Stok ══ -->
+  <div class="modal-overlay hidden" id="stockModal">
+    <div class="modal bo-modal" style="max-width:400px">
+      <h3 id="stockModalTitle">Update Stok</h3>
+      <form id="stockModalForm">
+        <div class="bo-form-grid" style="grid-template-columns:1fr">
+          <div class="form-group">
+            <label>Nama Item</label>
+            <input type="text" id="smItemName" disabled style="background:#f1f5f9" />
+          </div>
+          <div class="form-group">
+            <label>Stok Saat Ini</label>
+            <input type="number" id="smStock" required min="0" />
+          </div>
+          <div class="form-group">
+            <label>Buffer Stok <span style="font-size:.75rem;color:var(--text-muted);font-weight:400">(notifikasi jika stok ≤ nilai ini)</span></label>
+            <input type="number" id="smBuffer" min="0" value="5" />
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" id="stockModalCancel">Batal</button>
+          <button type="submit" class="btn btn-primary" id="stockModalSave">Simpan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ══ Modal: Void ══ -->
+  <div class="modal-overlay hidden" id="voidModal">
+    <div class="modal bo-modal" style="max-width:420px">
+      <div style="font-size:2rem;text-align:center;margin-bottom:.5rem">🚫</div>
+      <h3 id="voidModalTitle" style="text-align:center">Void Meja</h3>
+      <p id="voidModalDesc" style="text-align:center;color:var(--text-muted);font-size:.9rem;margin:.5rem 0 1rem"></p>
+      <div class="form-group">
+        <label>Alasan Void (opsional)</label>
+        <input type="text" id="voidReason" placeholder="Contoh: Pelanggan batal" />
+      </div>
+      <div class="modal-actions" style="margin-top:1rem">
+        <button type="button" class="btn btn-secondary" id="voidModalCancel">Batal</button>
+        <button type="button" class="btn btn-danger" id="voidModalConfirm">Ya, Void</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ Modal: User ══ -->
   <div class="modal-overlay hidden" id="userModal">
     <div class="modal bo-modal">
       <h3 id="userModalTitle">Tambah User</h3>
