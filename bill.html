@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>POS Cafe — Bill & Pembayaran</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body class="app-page">
+  <nav class="navbar">
+    <div class="nav-brand">
+      <button class="btn-back" id="backBtn">&#8592;</button>
+      ☕ CafePos
+    </div>
+    <div class="nav-center"><span class="badge-table" id="tableLabel"></span></div>
+    <div class="nav-right"><span class="badge-kasir" id="kasirName"></span></div>
+  </nav>
+
+  <div class="bill-layout">
+    <!-- Panel Kiri: Detail Bill -->
+    <div class="bill-panel">
+      <div class="bill-header">
+        <div class="bill-logo">☕ CafePos</div>
+        <div class="bill-info">
+          <span id="billTableName"></span>
+          <span id="billDate"></span>
+          <span id="billKasir"></span>
+        </div>
+        <div class="bill-status" id="billStatus"></div>
+      </div>
+      <div class="bill-items" id="billItems"></div>
+      <div class="bill-summary">
+        <div class="summary-row"><span>Subtotal</span><span id="subtotal">Rp 0</span></div>
+        <div class="summary-row"><span>PPN (10%)</span><span id="taxAmount">Rp 0</span></div>
+        <div class="summary-row total-row"><span>Total</span><span id="grandTotal">Rp 0</span></div>
+      </div>
+      <div class="bill-note" id="billNote"></div>
+    </div>
+
+    <!-- Panel Kanan: Pembayaran -->
+    <div class="payment-panel">
+      <h3>Pembayaran</h3>
+      <div class="payment-method">
+        <label class="method-option">
+          <input type="radio" name="payMethod" value="cash" checked />
+          <span class="method-card"><span class="method-icon">💵</span><span>Cash</span></span>
+        </label>
+        <label class="method-option">
+          <input type="radio" name="payMethod" value="debit" />
+          <span class="method-card"><span class="method-icon">💳</span><span>Debit</span></span>
+        </label>
+      </div>
+
+      <!-- Cash -->
+      <div id="cashSection">
+        <div class="form-group">
+          <label>Jumlah Bayar</label>
+          <input type="number" id="cashInput" placeholder="Masukkan nominal" min="0" />
+        </div>
+        <div class="quick-cash" id="quickCash"></div>
+        <div class="change-display">
+          <span>Kembalian</span>
+          <span id="changeAmount" class="change-value">Rp 0</span>
+        </div>
+      </div>
+
+      <!-- Debit -->
+      <div id="debitSection" class="hidden">
+        <div class="form-group">
+          <label>Nomor Kartu</label>
+          <input type="text" id="cardNumber" placeholder="xxxx-xxxx-xxxx-xxxx" maxlength="19" />
+        </div>
+        <div class="form-group">
+          <label>Nama Pemegang Kartu</label>
+          <input type="text" id="cardHolder" placeholder="Nama sesuai kartu" />
+        </div>
+        <div class="form-group">
+          <label>Bank</label>
+          <select id="bankName">
+            <option value="">-- Pilih Bank --</option>
+            <option>BCA</option><option>BNI</option><option>BRI</option>
+            <option>Mandiri</option><option>CIMB Niaga</option><option>Lainnya</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="payError" class="error-msg hidden"></div>
+      <button class="btn btn-success btn-full btn-lg" id="payBtn">✓ Proses Pembayaran</button>
+      <button class="btn btn-outline btn-full" id="addOrderBtn">+ Tambah Pesanan</button>
+    </div>
+  </div>
+
+  <!-- Modal sukses -->
+  <div class="modal-overlay hidden" id="successModal">
+    <div class="modal modal-success">
+      <div class="success-icon">✅</div>
+      <h3>Pembayaran Berhasil!</h3>
+      <div id="successDetail"></div>
+      <div class="modal-actions">
+        <button class="btn btn-primary btn-full" id="doneBtn">Selesai & Kembali ke Meja</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script src="js/modal.js"></script>
+  <script src="js/bill.js"></script>
+</body>
+</html>

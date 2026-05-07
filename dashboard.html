@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>POS Cafe — Pilih Meja</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body class="app-page">
+  <nav class="navbar">
+    <div class="nav-brand">☕ CafePos</div>
+    <div class="nav-center"><span id="currentDate"></span></div>
+    <div class="nav-right">
+      <span class="badge-kasir" id="kasirName"></span>
+      <button class="btn btn-outline btn-sm" id="logoutBtn">Logout</button>
+    </div>
+  </nav>
+
+  <div class="container">
+    <div class="page-header">
+      <h2>Pilih Meja</h2>
+      <div class="legend">
+        <span class="dot dot-available"></span> Tersedia
+        <span class="dot dot-occupied"></span> Terisi
+      </div>
+    </div>
+    <div class="table-grid" id="tableGrid"></div>
+  </div>
+
+  <!-- Modal meja -->
+  <div class="modal-overlay hidden" id="tableModal">
+    <div class="modal">
+      <h3 id="modalTitle">Meja 1</h3>
+      <p id="modalDesc"></p>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" id="modalCancel">Batal</button>
+        <button class="btn btn-danger btn-sm hidden" id="modalVoid">🗑 Batalkan Meja</button>
+        <button class="btn btn-primary" id="modalConfirm">Buka Pesanan</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script src="js/modal.js"></script>
+  <script src="js/tables.js"></script>
+</body>
+</html>
