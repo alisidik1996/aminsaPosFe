@@ -15,6 +15,7 @@
       <button class="bo-nav-item active" data-tab="menu">🍽 Menu</button>
       <button class="bo-nav-item" data-tab="stock">📦 Stok</button>
       <button class="bo-nav-item" data-tab="users">👥 Users</button>
+      <button class="bo-nav-item" data-tab="settings">⚙️ Pengaturan</button>
     </nav>
     <div class="bo-sidebar-footer">
       <span id="boKasirName"></span>
@@ -57,6 +58,43 @@
         </table>
       </div>
     </section>
+
+    <!-- Tab Pengaturan -->
+    <section class="bo-tab" id="tab-settings">
+      <div class="bo-settings-wrap">
+        <div class="bo-settings-card">
+          <h3 class="bo-settings-title">🏪 Info Merchant</h3>
+          <p class="bo-settings-desc">Informasi ini akan tampil di struk pembayaran.</p>
+          <form id="settingsForm">
+            <div class="bo-form-grid">
+              <div class="form-group bo-full">
+                <label>Nama Merchant</label>
+                <input type="text" id="sMerchantName" placeholder="Contoh: Waltie's Rooftop Cafe" />
+              </div>
+              <div class="form-group bo-full">
+                <label>Alamat</label>
+                <textarea id="sMerchantAddress" rows="3" placeholder="Contoh: Jl. Sudirman No. 10, Jakarta"></textarea>
+              </div>
+              <div class="form-group">
+                <label>No. HP / WhatsApp</label>
+                <input type="text" id="sMerchantPhone" placeholder="Contoh: 08123456789" />
+              </div>
+              <div class="form-group">
+                <label>Media Sosial</label>
+                <input type="text" id="sMerchantSocial" placeholder="Contoh: @waltiesrooftop" />
+              </div>
+              <div class="form-group bo-full">
+                <label>Pesan Footer Struk</label>
+                <input type="text" id="sReceiptFooter" placeholder="Contoh: Terima kasih telah berkunjung!" />
+              </div>
+            </div>
+            <div class="modal-actions" style="justify-content:flex-end;margin-top:1.5rem">
+              <button type="submit" class="btn btn-primary" id="settingsSaveBtn">💾 Simpan Pengaturan</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </section>
   </main>
 
   <!-- Modal Menu -->
@@ -69,7 +107,7 @@
           <div class="form-group"><label>Harga (Rp)</label><input type="number" id="mPrice" required min="0" /></div>
           <div class="form-group"><label>Kategori</label><input type="text" id="mCategory" required placeholder="Makanan / Minuman / Snack" /></div>
           <div class="form-group"><label>Stasiun</label><select id="mStation"><option value="kitchen">🍳 Kitchen</option><option value="bar">🍹 Bar</option></select></div>
-          <div class="form-group"><label>Stok</label><input type="number" id="mStock" min="0" value="0" /></div>
+          <div class="form-group"><label>Stok <span id="mStockHint" style="font-size:.75rem;color:var(--text-muted);font-weight:400"></span></label><input type="number" id="mStock" min="0" value="0" /></div>
           <div class="form-group"><label>Status</label><select id="mActive"><option value="1">Aktif</option><option value="0">Nonaktif</option></select></div>
           <div class="form-group bo-full"><label>URL Foto</label><input type="text" id="mImage" placeholder="https://..." /></div>
           <div class="form-group bo-full" id="mPreviewWrap" style="display:none">

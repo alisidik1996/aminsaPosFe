@@ -22,14 +22,15 @@ function switchTab(tab) {
   activeTab = tab;
   document.querySelectorAll('.bo-nav-item').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
   document.querySelectorAll('.bo-tab').forEach(s => s.classList.toggle('active', s.id === `tab-${tab}`));
-  const titles = { menu: 'Menu', stock: 'Manajemen Stok', users: 'Users' };
+  const titles = { menu: 'Menu', stock: 'Manajemen Stok', users: 'Users', settings: 'Pengaturan' };
   document.getElementById('boPageTitle').textContent = titles[tab];
   const addBtn = document.getElementById('boAddBtn');
-  addBtn.style.display  = tab === 'stock' ? 'none' : '';
+  addBtn.style.display  = (tab === 'stock' || tab === 'settings') ? 'none' : '';
   addBtn.textContent    = tab === 'users' ? '+ Tambah User' : '+ Tambah Menu';
-  if (tab === 'menu')  loadMenu();
-  if (tab === 'stock') loadStock();
-  if (tab === 'users') loadUsers();
+  if (tab === 'menu')     loadMenu();
+  if (tab === 'stock')    loadStock();
+  if (tab === 'users')    loadUsers();
+  if (tab === 'settings') loadSettings();
 }
 
 document.getElementById('boAddBtn').addEventListener('click', () => {
@@ -86,6 +87,9 @@ async function openMenuModal(id) {
   document.getElementById('menuModalTitle').textContent = id ? 'Edit Menu' : 'Tambah Menu';
   document.getElementById('menuForm').reset();
   document.getElementById('mPreviewWrap').style.display = 'none';
+  
+  const stockField = document.getElementById('mStock');
+  
   if (id) {
     const item = allMenuItems.find(m => m.id === id);
     if (item) {
@@ -93,12 +97,24 @@ async function openMenuModal(id) {
       document.getElementById('mPrice').value    = item.price;
       document.getElementById('mCategory').value = item.category;
       document.getElementById('mStation').value  = item.station;
-      document.getElementById('mStock').value    = item.stock;
+      stockField.value                           = item.stock;
       document.getElementById('mActive').value   = item.active;
       document.getElementById('mImage').value    = item.image || '';
       if (item.image) { document.getElementById('mPreview').src = item.image; document.getElementById('mPreviewWrap').style.display = ''; }
     }
+    // Disable stok field saat edit
+    stockField.disabled = true;
+    stockField.style.backgroundColor = '#f1f5f9';
+    stockField.style.cursor = 'not-allowed';
+    document.getElementById('mStockHint').textContent = '(edit di tab Stok)';
+  } else {
+    // Enable stok field saat tambah menu baru
+    stockField.disabled = false;
+    stockField.style.backgroundColor = '';
+    stockField.style.cursor = '';
+    document.getElementById('mStockHint').textContent = '';
   }
+  
   document.getElementById('menuModal').classList.remove('hidden');
 }
 
@@ -115,9 +131,13 @@ document.getElementById('menuForm').addEventListener('submit', async (e) => {
   const data = {
     name: document.getElementById('mName').value.trim(), price: parseInt(document.getElementById('mPrice').value),
     category: document.getElementById('mCategory').value.trim(), station: document.getElementById('mStation').value,
-    stock: parseInt(document.getElementById('mStock').value) || 0, active: parseInt(document.getElementById('mActive').value),
+    active: parseInt(document.getElementById('mActive').value),
     image: document.getElementById('mImage').value.trim(),
   };
+  // Stok hanya disertakan saat tambah menu baru (saat edit, field disabled)
+  if (!editingMenuId) {
+    data.stock = parseInt(document.getElementById('mStock').value) || 0;
+  }
   const saveBtn = document.getElementById('menuModalSave');
   saveBtn.disabled = true; saveBtn.textContent = 'Menyimpan...';
   try {
@@ -233,6 +253,43 @@ async function deleteUser(id, username) {
     catch (err) { Modal.alert('❌', 'Gagal', err.message); }
   }, 'Ya, Hapus', 'Batal', 'btn-danger');
 }
+
+// ══ SETTINGS ═══════════════════════════════════════════════════
+async function loadSettings() {
+  try {
+    const settings = await API.getSettings();
+    document.getElementById('sMerchantName').value    = settings.merchant_name || '';
+    document.getElementById('sMerchantAddress').value = settings.merchant_address || '';
+    document.getElementById('sMerchantPhone').value   = settings.merchant_phone || '';
+    document.getElementById('sMerchantSocial').value  = settings.merchant_social || '';
+    document.getElementById('sReceiptFooter').value   = settings.receipt_footer || '';
+  } catch (err) {
+    Modal.alert('❌', 'Gagal Memuat', err.message);
+  }
+}
+
+document.getElementById('settingsForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const data = {
+    merchant_name:    document.getElementById('sMerchantName').value.trim(),
+    merchant_address: document.getElementById('sMerchantAddress').value.trim(),
+    merchant_phone:   document.getElementById('sMerchantPhone').value.trim(),
+    merchant_social:  document.getElementById('sMerchantSocial').value.trim(),
+    receipt_footer:   document.getElementById('sReceiptFooter').value.trim(),
+  };
+  const saveBtn = document.getElementById('settingsSaveBtn');
+  saveBtn.disabled = true;
+  saveBtn.textContent = 'Menyimpan...';
+  try {
+    await API.updateSettings(data);
+    Modal.alert('✅', 'Berhasil', 'Pengaturan berhasil disimpan.');
+  } catch (err) {
+    Modal.alert('❌', 'Gagal', err.message);
+  } finally {
+    saveBtn.disabled = false;
+    saveBtn.textContent = '💾 Simpan Pengaturan';
+  }
+});
 
 // ── Init ──────────────────────────────────────────────────────
 switchTab('menu');

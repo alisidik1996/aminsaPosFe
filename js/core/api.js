@@ -77,4 +77,8 @@ const API = {
   createBill:      (data)    => http('POST', '/bills', data),
   updateBill:      (id, data)=> http('PATCH',`/bills/${id}`, data),
   addOrderToBill:  (id, orderId) => http('POST', `/bills/${id}/add-order`, { orderId }),
+
+  // ── SETTINGS ────────────────────────────────────────────
+  getSettings:     ()        => http('GET',  '/settings'),
+  updateSettings:  (data)    => http('PUT',  '/settings', data),
 };
