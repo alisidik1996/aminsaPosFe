@@ -3,15 +3,17 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>POS — Login</title>
-  <link rel="stylesheet" href="css/style.css" />
+  <title>Waltie's Rooftop Cafe — Login</title>
+  <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="css/components.css" />
+  <link rel="stylesheet" href="css/layout.css" />
 </head>
 <body class="login-page">
   <div class="login-card">
     <div class="logo">
-      <span class="logo-icon"></span>
-      <h1>Point Of Sales</h1>
-      <p>Punya Aminsa tapi belum ada namanya</p>
+      <!-- <span class="logo-icon">☕</span> -->
+      <h1>Waltie's Rooftop Cafe</h1>
+      <p>Point of Sales</p>
     </div>
     <form id="loginForm">
       <div class="form-group">
@@ -22,13 +24,14 @@
         <label for="password">Password</label>
         <input type="password" id="password" placeholder="Masukkan password" required />
       </div>
-      <div id="loginError" class="error-msg hidden">Username atau password salah.</div>
+      <div id="loginError" class="error-msg hidden"></div>
       <button type="button" id="loginBtn" class="btn btn-primary btn-full">Login</button>
     </form>
-    <p class="hint">Demo: kasir1 / 1234 &nbsp;|&nbsp; kasir2 / 1234</p>
+    <p class="hint">Demo: kasir1 / 1234 &nbsp;|&nbsp; admin / admin</p>
   </div>
-  <script src="js/api.js"></script>
-  <script src="js/modal.js"></script>
-  <script src="js/auth.js"></script>
+  <script src="js/core/api.js"></script>
+  <script src="js/core/modal.js"></script>
+  <script src="js/core/utils.js"></script>
+  <script src="js/pages/auth.js"></script>
 </body>
 </html>

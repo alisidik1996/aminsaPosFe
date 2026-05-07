@@ -3,30 +3,28 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>POS — Pesanan</title>
-  <link rel="stylesheet" href="css/style.css" />
+  <title>Waltie's Rooftop Cafe — Pesanan</title>
+  <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="css/components.css" />
+  <link rel="stylesheet" href="css/layout.css" />
 </head>
 <body class="app-page">
   <nav class="navbar">
     <div class="nav-brand">
       <button class="btn-back" id="backBtn">&#8592;</button>
-      Logo Merchant
+      Waltie's Rooftop Cafe
     </div>
     <div class="nav-center"><span class="badge-table" id="tableLabel"></span></div>
     <div class="nav-right"><span class="badge-kasir" id="kasirName"></span></div>
   </nav>
-
   <div class="order-layout">
-    <!-- Panel Kiri: Menu -->
     <div class="menu-panel">
       <div class="menu-search">
-        <input type="text" id="searchMenu" placeholder="Cari menu..." />
+        <input type="text" id="searchMenu" placeholder="🔍 Cari menu..." />
       </div>
       <div class="category-tabs" id="categoryTabs"></div>
       <div class="menu-grid" id="menuGrid"></div>
     </div>
-
-    <!-- Panel Kanan: Order -->
     <div class="order-panel">
       <div class="order-header">
         <h3>Pesanan</h3>
@@ -34,8 +32,7 @@
       </div>
       <div class="order-items" id="orderItems">
         <div class="empty-order" id="emptyOrder">
-          <span>🛒</span>
-          <p>Belum ada pesanan</p>
+          <span></span><p>Belum ada pesanan</p>
         </div>
       </div>
       <div class="order-footer">
@@ -43,18 +40,15 @@
           <input type="text" id="orderNote" placeholder="Catatan pesanan (opsional)" />
         </div>
         <div class="order-total">
-          <span>Total</span>
-          <span id="totalAmount">Rp 0</span>
+          <span>Total</span><span id="totalAmount">Rp 0</span>
         </div>
         <div class="order-actions">
           <button class="btn btn-danger btn-sm" id="clearOrderBtn">Hapus Semua</button>
-          <button class="btn btn-success btn-full" id="sendOrderBtn">Submit Pesanan</button>
+          <button class="btn btn-success btn-full" id="sendOrderBtn">Kirim Pesanan</button>
         </div>
       </div>
     </div>
   </div>
-
-  <!-- Modal konfirmasi kirim -->
   <div class="modal-overlay hidden" id="sendModal">
     <div class="modal">
       <h3>Konfirmasi Pesanan</h3>
@@ -65,9 +59,12 @@
       </div>
     </div>
   </div>
-
-  <script src="js/api.js"></script>
-  <script src="js/modal.js"></script>
-  <script src="js/order.js"></script>
+  <script src="js/core/api.js"></script>
+  <script src="js/core/modal.js"></script>
+  <script src="js/core/utils.js"></script>
+  <script src="js/components/menuGrid.js"></script>
+  <script src="js/components/cart.js"></script>
+  <script src="js/components/stationNotif.js"></script>
+  <script src="js/pages/order.js"></script>
 </body>
 </html>
