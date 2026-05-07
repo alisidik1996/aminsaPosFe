@@ -1,8 +1,10 @@
 // ===== AUTH =====
 
 // Redirect jika sudah login
-if (sessionStorage.getItem('pos_session')) {
-  window.location.href = 'dashboard.html';
+const _existing = sessionStorage.getItem('pos_session');
+if (_existing) {
+  const _role = JSON.parse(_existing).role;
+  window.location.href = _role === 'admin' ? 'backoffice.html' : 'dashboard.html';
 }
 
 async function doLogin() {
@@ -24,7 +26,8 @@ async function doLogin() {
   try {
     const data = await API.login(username, password);
     sessionStorage.setItem('pos_session', JSON.stringify(data.user));
-    window.location.href = 'dashboard.html';
+    // Redirect berdasarkan role
+    window.location.href = data.user.role === 'admin' ? 'backoffice.html' : 'dashboard.html';
   } catch (err) {
     errEl.textContent = err.message || 'Username atau password salah.';
     errEl.classList.remove('hidden');
@@ -33,13 +36,8 @@ async function doLogin() {
   }
 }
 
-// Klik tombol
 document.getElementById('loginBtn').addEventListener('click', doLogin);
 
-// Enter di input juga trigger login
 document.getElementById('loginForm').addEventListener('keydown', function (e) {
-  if (e.key === 'Enter') {
-    e.preventDefault();
-    doLogin();
-  }
+  if (e.key === 'Enter') { e.preventDefault(); doLogin(); }
 });

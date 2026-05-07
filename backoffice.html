@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CafePos — Backoffice</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/backoffice.css" />
+</head>
+<body class="bo-body">
+
+  <!-- Sidebar -->
+  <aside class="bo-sidebar" id="sidebar">
+    <div class="bo-logo">☕ CafePos</div>
+    <nav class="bo-nav">
+      <button class="bo-nav-item active" data-tab="menu">
+        🍽 Menu
+      </button>
+      <button class="bo-nav-item" data-tab="stock">
+        📦 Stok
+      </button>
+      <button class="bo-nav-item" data-tab="users">
+        👥 Users
+      </button>
+    </nav>
+    <div class="bo-sidebar-footer">
+      <span id="boKasirName"></span>
+      <button class="btn btn-outline btn-sm" id="boLogoutBtn">Logout</button>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="bo-main">
+
+    <!-- Header -->
+    <header class="bo-header">
+      <h1 id="boPageTitle">Menu</h1>
+      <button class="btn btn-primary" id="boAddBtn">+ Tambah</button>
+    </header>
+
+    <!-- Tab: Menu -->
+    <section class="bo-tab active" id="tab-menu">
+      <div class="bo-toolbar">
+        <input type="text" id="menuSearch" placeholder="🔍 Cari menu..." class="bo-search" />
+        <select id="menuCatFilter" class="bo-select">
+          <option value="">Semua Kategori</option>
+        </select>
+      </div>
+      <div class="bo-table-wrap">
+        <table class="bo-table" id="menuTable">
+          <thead>
+            <tr>
+              <th>Foto</th>
+              <th>Nama</th>
+              <th>Kategori</th>
+              <th>Stasiun</th>
+              <th>Harga</th>
+              <th>Stok</th>
+              <th>Status</th>
+              <th>Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="menuTbody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Tab: Stok -->
+    <section class="bo-tab" id="tab-stock">
+      <div class="bo-toolbar">
+        <input type="text" id="stockSearch" placeholder="🔍 Cari menu..." class="bo-search" />
+      </div>
+      <div class="bo-table-wrap">
+        <table class="bo-table" id="stockTable">
+          <thead>
+            <tr>
+              <th>Nama</th>
+              <th>Kategori</th>
+              <th>Stok Saat Ini</th>
+              <th>Update Stok</th>
+            </tr>
+          </thead>
+          <tbody id="stockTbody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Tab: Users -->
+    <section class="bo-tab" id="tab-users">
+      <div class="bo-table-wrap">
+        <table class="bo-table" id="usersTable">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Username</th>
+              <th>Nama</th>
+              <th>Role</th>
+              <th>Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="usersTbody"></tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ── MODAL FORM MENU ── -->
+  <div class="modal-overlay hidden" id="menuModal">
+    <div class="modal bo-modal">
+      <h3 id="menuModalTitle">Tambah Menu</h3>
+      <form id="menuForm">
+        <div class="bo-form-grid">
+          <div class="form-group">
+            <label>Nama Menu</label>
+            <input type="text" id="mName" required placeholder="Nama menu" />
+          </div>
+          <div class="form-group">
+            <label>Harga (Rp)</label>
+            <input type="number" id="mPrice" required min="0" placeholder="0" />
+          </div>
+          <div class="form-group">
+            <label>Kategori</label>
+            <input type="text" id="mCategory" required placeholder="Makanan / Minuman / Snack" />
+          </div>
+          <div class="form-group">
+            <label>Stasiun</label>
+            <select id="mStation" required>
+              <option value="kitchen">🍳 Kitchen</option>
+              <option value="bar">🍹 Bar</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Stok Awal</label>
+            <input type="number" id="mStock" min="0" value="0" />
+          </div>
+          <div class="form-group">
+            <label>Status</label>
+            <select id="mActive">
+              <option value="1">Aktif</option>
+              <option value="0">Nonaktif</option>
+            </select>
+          </div>
+          <div class="form-group bo-full">
+            <label>URL Foto</label>
+            <input type="text" id="mImage" placeholder="https://..." />
+          </div>
+          <div class="form-group bo-full" id="mPreviewWrap" style="display:none">
+            <img id="mPreview" src="" alt="preview" style="width:100px;height:100px;object-fit:cover;border-radius:8px" />
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" id="menuModalCancel">Batal</button>
+          <button type="submit" class="btn btn-primary" id="menuModalSave">Simpan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ── MODAL FORM USER ── -->
+  <div class="modal-overlay hidden" id="userModal">
+    <div class="modal bo-modal">
+      <h3 id="userModalTitle">Tambah User</h3>
+      <form id="userForm">
+        <div class="bo-form-grid">
+          <div class="form-group">
+            <label>Username</label>
+            <input type="text" id="uUsername" required placeholder="username" />
+          </div>
+          <div class="form-group">
+            <label>Password</label>
+            <input type="password" id="uPassword" placeholder="Kosongkan jika tidak diubah" />
+          </div>
+          <div class="form-group">
+            <label>Nama Lengkap</label>
+            <input type="text" id="uName" required placeholder="Nama" />
+          </div>
+          <div class="form-group">
+            <label>Role</label>
+            <select id="uRole" required>
+              <option value="kasir">Kasir</option>
+              <option value="admin">Admin</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" id="userModalCancel">Batal</button>
+          <button type="submit" class="btn btn-primary">Simpan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script src="js/modal.js"></script>
+  <script src="js/backoffice.js"></script>
+</body>
+</html>

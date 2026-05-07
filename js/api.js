@@ -39,9 +39,12 @@ async function http(method, path, body) {
 }
 
 const API = {
-  // ── AUTH ────────────────────────────────────────────────
-  login: (username, password) =>
-    http('POST', '/auth/login', { username, password }),
+  // ── AUTH / USERS ────────────────────────────────────────
+  login:      (username, password) => http('POST', '/auth/login', { username, password }),
+  getUsers:   ()         => http('GET',    '/auth/users'),
+  addUser:    (data)     => http('POST',   '/auth/users', data),
+  updateUser: (id, data) => http('PUT',    `/auth/users/${id}`, data),
+  deleteUser: (id)       => http('DELETE', `/auth/users/${id}`),
 
   // ── MENU ────────────────────────────────────────────────
   getMenu: (category) => {
@@ -51,6 +54,9 @@ const API = {
   },
   getMenuCategories: () => http('GET', '/menu/categories'),
   updateMenuStock:   (id, stock) => http('PATCH', `/menu/${id}/stock`, { stock }),
+  updateMenu:        (id, data)  => http('PUT',   `/menu/${id}`, data),
+  addMenu:           (data)      => http('POST',  '/menu', data),
+  deleteMenu:        (id)        => http('DELETE', `/menu/${id}`),
 
   // ── TABLES ──────────────────────────────────────────────
   getTables:   ()          => http('GET',   '/tables'),
