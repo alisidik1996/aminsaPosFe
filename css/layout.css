@@ -114,3 +114,8 @@
   .menu-grid { grid-template-columns: repeat(auto-fill, 130px); }
   .menu-item { width: 130px; }
 }
+
+/* ── Print ── */
+@media print {
+  .navbar, .payment-panel, #printBtn, #receiptArea { display: none !important; }
+}

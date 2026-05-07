@@ -35,6 +35,8 @@
         <div class="summary-row total-row"><span>Total</span><span id="grandTotal">Rp 0</span></div>
       </div>
       <div class="bill-note" id="billNote"></div>
+      <!-- Tombol print struk (tersedia sebelum & sesudah bayar) -->
+      <button class="btn btn-outline btn-full" id="printBtn" style="margin-top:1rem">🖨️ Print Struk</button>
     </div>
     <div class="payment-panel">
       <h3>Pembayaran</h3>
@@ -61,20 +63,16 @@
       </div>
       <div id="debitSection" class="hidden">
         <div class="form-group">
-          <label>Nomor Kartu</label>
-          <input type="text" id="cardNumber" placeholder="xxxx-xxxx-xxxx-xxxx" maxlength="19" />
-        </div>
-        <div class="form-group">
-          <label>Nama Pemegang Kartu</label>
-          <input type="text" id="cardHolder" placeholder="Nama sesuai kartu" />
-        </div>
-        <div class="form-group">
           <label>Bank</label>
           <select id="bankName">
             <option value="">-- Pilih Bank --</option>
             <option>BCA</option><option>BNI</option><option>BRI</option>
             <option>Mandiri</option><option>CIMB Niaga</option><option>Lainnya</option>
           </select>
+        </div>
+        <div class="form-group">
+          <label>Nomor Kartu (4 digit terakhir)</label>
+          <input type="text" id="cardLast4" placeholder="xxxx" maxlength="4" pattern="\d{4}" />
         </div>
       </div>
       <div id="payError" class="error-msg hidden"></div>
@@ -88,7 +86,8 @@
       <h3>Pembayaran Berhasil!</h3>
       <div id="successDetail"></div>
       <div class="modal-actions">
-        <button class="btn btn-primary btn-full" id="doneBtn">Selesai & Kembali ke Meja</button>
+        <button class="btn btn-outline" id="printAfterPayBtn">🖨️ Print Struk</button>
+        <button class="btn btn-primary" id="doneBtn">Selesai & Kembali ke Meja</button>
       </div>
     </div>
   </div>
@@ -96,5 +95,8 @@
   <script src="js/core/modal.js"></script>
   <script src="js/core/utils.js"></script>
   <script src="js/pages/bill.js"></script>
+
+  <!-- Area struk untuk print — hanya muncul saat print -->
+  <div id="receiptArea" style="display:none"></div>
 </body>
 </html>
