@@ -21,5 +21,5 @@ Backend harus jalan di `http://localhost:3001`.
 Edit `js/api.js` — ganti URL production dengan URL backend Vercel kamu:
 
 ```js
-return 'https://amins-a-pos-be.vercel.app/api'; // ← ganti ini
+return 'https://aminsa-pos-be.vercel.app/api'; // ← sudah benar
 ```

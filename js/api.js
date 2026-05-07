@@ -6,11 +6,11 @@ const BACKEND_URL = (() => {
 
   // Jika jalan di localhost / 127.0.0.1 → arahkan ke backend lokal
   if (hostname === 'localhost' || hostname === '127.0.0.1') {
-    return 'http://localhost:3001/api';
+    return 'http://localhost:3000/api';
   }
 
-  // Production → ganti dengan URL backend Vercel kamu setelah deploy
-  return 'https://amins-a-pos-be.vercel.app/api';
+  // Production → backend Vercel
+  return 'https://aminsa-pos-be.vercel.app/api';
 })();
 
 async function http(method, path, body) {
