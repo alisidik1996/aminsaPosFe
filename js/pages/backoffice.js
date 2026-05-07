@@ -252,7 +252,7 @@ async function loadStock() {
 
 function renderStockTable(items) {
   const tbody = document.getElementById('stockTbody');
-  if (!items.length) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:2rem">Tidak ada item</td></tr>'; return; }
+  if (!items.length) { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:2rem">Tidak ada item</td></tr>'; return; }
   tbody.innerHTML = items.map(item => {
     const buffer = item.buffer_stock || 5;
     return `
@@ -261,10 +261,6 @@ function renderStockTable(items) {
       <td>${item.category}</td>
       <td><span class="item-stock ${item.stock <= buffer ? 'stock-low' : item.stock <= buffer * 2 ? 'stock-mid' : 'stock-ok'}">${item.stock}</span></td>
       <td><span class="bo-badge" style="background:#f1f5f9;color:#64748b">${buffer}</span></td>
-      <td><div class="stock-input-wrap">
-        <input type="number" class="stock-input" id="stock-${item.id}" value="${item.stock}" min="0" />
-        <button class="btn btn-primary btn-sm" onclick="quickSaveStock(${item.id})">Simpan</button>
-      </div></td>
       <td><button class="btn btn-outline btn-sm" onclick="openStockModal(${item.id})">⚙️ Atur</button></td>
     </tr>
   `;
@@ -275,21 +271,6 @@ document.getElementById('stockSearch').addEventListener('input', function () {
   const q = this.value.toLowerCase();
   renderStockTable(allStockItems.filter(m => m.name.toLowerCase().includes(q)));
 });
-
-async function quickSaveStock(id) {
-  const input = document.getElementById(`stock-${id}`);
-  const stock = parseInt(input.value);
-  if (isNaN(stock) || stock < 0) { Modal.alert('⚠️', 'Input Tidak Valid', 'Stok harus angka >= 0'); return; }
-  try {
-    await API.updateMenuStock(id, stock);
-    const item = allStockItems.find(m => m.id === id);
-    if (item) item.stock = stock;
-    const span = input.closest('tr').querySelector('.item-stock');
-    const buffer = item?.buffer_stock || 5;
-    if (span) { span.textContent = stock; span.className = `item-stock ${stock <= buffer ? 'stock-low' : stock <= buffer * 2 ? 'stock-mid' : 'stock-ok'}`; }
-    Modal.alert('✅', 'Berhasil', `Stok "${item?.name}" diupdate ke ${stock}`);
-  } catch (err) { Modal.alert('❌', 'Gagal', err.message); }
-}
 
 let editingStockItemId = null;
 function openStockModal(id) {
