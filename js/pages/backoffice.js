@@ -261,7 +261,7 @@ function renderStockTable(items) {
       <td>${item.category}</td>
       <td><span class="item-stock ${item.stock <= buffer ? 'stock-low' : item.stock <= buffer * 2 ? 'stock-mid' : 'stock-ok'}">${item.stock}</span></td>
       <td><span class="bo-badge" style="background:#f1f5f9;color:#64748b">${buffer}</span></td>
-      <td><button class="btn btn-outline btn-sm" onclick="openStockModal(${item.id})">⚙️ Atur</button></td>
+      <td><button class="btn btn-outline btn-sm" onclick="openStockModal(${item.id})">✏️ Edit</button></td>
     </tr>
   `;
   }).join('');
