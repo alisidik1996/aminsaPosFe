@@ -14,7 +14,7 @@ async function init() {
   table = await API.getTable(tableId);
   bill  = await API.getBill(billId);
   if (!bill) { window.location.href = 'dashboard.html'; return; }
-  document.getElementById('kasirName').textContent  = '👤 ' + session.name;
+  document.getElementById('kasirName').textContent  = '' + session.name;
   document.getElementById('tableLabel').textContent = table?.name || '';
   renderBill();
 }
@@ -35,9 +35,9 @@ document.getElementById('addOrderBtn').addEventListener('click', async () => {
 
 // ── Render bill ───────────────────────────────────────────────
 function renderBill() {
-  document.getElementById('billTableName').textContent = `📍 ${bill.tableName}`;
-  document.getElementById('billDate').textContent      = `📅 ${formatDate(bill.createdAt)}`;
-  document.getElementById('billKasir').textContent     = `👤 ${bill.kasirName}`;
+  document.getElementById('billTableName').textContent = `${bill.tableName}`;
+  document.getElementById('billDate').textContent      = `${formatDate(bill.createdAt)}`;
+  document.getElementById('billKasir').textContent     = `${bill.kasirName}`;
   document.getElementById('billStatus').innerHTML      =
     `<span class="status-badge ${bill.status}">${bill.status.toUpperCase()}</span>`;
 
@@ -57,11 +57,11 @@ function renderBill() {
   document.getElementById('subtotal').textContent   = formatRp(bill.subtotal);
   document.getElementById('taxAmount').textContent  = formatRp(bill.tax);
   document.getElementById('grandTotal').textContent = formatRp(bill.total);
-  document.getElementById('billNote').textContent   = bill.note ? `📝 ${bill.note}` : '';
+  document.getElementById('billNote').textContent   = bill.note ? `${bill.note}` : '';
 
   if (bill.status === 'paid') {
     document.getElementById('payBtn').disabled      = true;
-    document.getElementById('payBtn').textContent   = '✓ Sudah Dibayar';
+    document.getElementById('payBtn').textContent   = 'Sudah Dibayar';
     document.getElementById('addOrderBtn').disabled = true;
   }
 }
@@ -212,7 +212,7 @@ function buildReceiptHTML(isPaid) {
       ${bill.note ? `<div style="margin-top:6px;font-size:11px;border-top:1px dashed #000;padding-top:4px">Catatan: ${bill.note}</div>` : ''}
       <div style="text-align:center;margin-top:10px;font-size:11px;border-top:1px dashed #000;padding-top:6px">
         ${isPaid
-          ? '<strong>✓ LUNAS</strong><br>Terima kasih atas kunjungan Anda!'
+          ? '<strong>LUNAS</strong><br>Terima kasih atas kunjungan Anda!'
           : '<em>** BELUM DIBAYAR **</em>'
         }
       </div>

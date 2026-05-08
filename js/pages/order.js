@@ -17,7 +17,7 @@ async function init() {
   table = await API.getTable(tableId);
   order = await API.getOrder(orderId).catch(() => null);
 
-  document.getElementById('kasirName').textContent       = '👤 ' + session.name;
+  document.getElementById('kasirName').textContent       = '' + session.name;
   document.getElementById('tableLabel').textContent      = table?.name || '';
   document.getElementById('orderTableLabel').textContent = table?.name || '';
 
@@ -46,7 +46,7 @@ async function init() {
 // ── Back ──────────────────────────────────────────────────────
 document.getElementById('backBtn').addEventListener('click', () => {
   if (Cart.isEmpty() && order && order.status === 'open') {
-    Modal.confirm('⚠️', 'Cart Kosong', 'Cart masih kosong. Batalkan dan kosongkan meja?', async () => {
+    Modal.confirm('', 'Cart Kosong', 'Cart masih kosong. Batalkan dan kosongkan meja?', async () => {
       await API.updateOrder(orderId, { status: 'cancelled' });
       await API.updateTable(tableId, { status: 'available', openedAt: null, kasirId: null });
       window.location.href = 'dashboard.html';
@@ -91,7 +91,7 @@ document.getElementById('searchMenu').addEventListener('input', function () {
 // ── Clear ─────────────────────────────────────────────────────
 document.getElementById('clearOrderBtn').addEventListener('click', () => {
   if (Cart.isEmpty()) return;
-  Modal.confirm('🗑️', 'Hapus Semua', 'Hapus semua item dari pesanan?', () => {
+  Modal.confirm('', 'Hapus Semua', 'Hapus semua item dari pesanan?', () => {
     Cart.clear();
   }, 'Ya, Hapus', 'Batal', 'btn-danger');
 });
@@ -99,7 +99,7 @@ document.getElementById('clearOrderBtn').addEventListener('click', () => {
 // ── Kirim ─────────────────────────────────────────────────────
 document.getElementById('sendOrderBtn').addEventListener('click', () => {
   if (Cart.isEmpty()) {
-    Modal.alert('🛒', 'Pesanan Kosong', 'Tambahkan menu terlebih dahulu.');
+    Modal.alert('', 'Pesanan Kosong', 'Tambahkan menu terlebih dahulu.');
     return;
   }
   showSendModal();
@@ -112,12 +112,12 @@ function showSendModal() {
   let html = '';
 
   if (kitchen.length) {
-    html += `<div style="margin-bottom:.75rem"><strong>🍳 Kitchen</strong>`;
+    html += `<div style="margin-bottom:.75rem"><strong>Kitchen</strong>`;
     kitchen.forEach(i => { html += `<div class="send-summary-item"><span>${i.name}</span><span>x${i.qty}</span></div>`; });
     html += '</div>';
   }
   if (bar.length) {
-    html += `<div style="margin-bottom:.75rem"><strong>🍹 Bar</strong>`;
+    html += `<div style="margin-bottom:.75rem"><strong>Bar</strong>`;
     bar.forEach(i => { html += `<div class="send-summary-item"><span>${i.name}</span><span>x${i.qty}</span></div>`; });
     html += '</div>';
   }

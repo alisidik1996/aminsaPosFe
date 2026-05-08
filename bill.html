@@ -36,18 +36,18 @@
       </div>
       <div class="bill-note" id="billNote"></div>
       <!-- Tombol print struk (tersedia sebelum & sesudah bayar) -->
-      <button class="btn btn-outline btn-full" id="printBtn" style="margin-top:1rem">🖨️ Print Struk</button>
+      <button class="btn btn-outline btn-full" id="printBtn" style="margin-top:1rem">Print Struk</button>
     </div>
     <div class="payment-panel">
       <h3>Pembayaran</h3>
       <div class="payment-method">
         <label class="method-option">
           <input type="radio" name="payMethod" value="cash" checked />
-          <span class="method-card"><span class="method-icon">💵</span><span>Cash</span></span>
+          <span class="method-card"><span class="method-icon"></span><span>Cash</span></span>
         </label>
         <label class="method-option">
           <input type="radio" name="payMethod" value="debit" />
-          <span class="method-card"><span class="method-icon">💳</span><span>Debit</span></span>
+          <span class="method-card"><span class="method-icon"></span><span>Debit</span></span>
         </label>
       </div>
       <div id="cashSection">
@@ -76,17 +76,17 @@
         </div>
       </div>
       <div id="payError" class="error-msg hidden"></div>
-      <button class="btn btn-success btn-full btn-lg" id="payBtn">✓ Proses Pembayaran</button>
+      <button class="btn btn-success btn-full btn-lg" id="payBtn">Proses Pembayaran</button>
       <button class="btn btn-outline btn-full" id="addOrderBtn">+ Tambah Pesanan</button>
     </div>
   </div>
   <div class="modal-overlay hidden" id="successModal">
     <div class="modal modal-success">
-      <div class="success-icon">✅</div>
+      <div class="success-icon"></div>
       <h3>Pembayaran Berhasil!</h3>
       <div id="successDetail"></div>
       <div class="modal-actions">
-        <button class="btn btn-outline" id="printAfterPayBtn">🖨️ Print Struk</button>
+        <button class="btn btn-outline" id="printAfterPayBtn">Print Struk</button>
         <button class="btn btn-primary" id="doneBtn">Selesai & Kembali ke Meja</button>
       </div>
     </div>

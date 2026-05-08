@@ -12,12 +12,12 @@
   <aside class="bo-sidebar">
     <div class="bo-logo">Waltie's Rooftop Cafe</div>
     <nav class="bo-nav">
-      <button class="bo-nav-item active" data-tab="items">🍽 Item</button>
-      <button class="bo-nav-item" data-tab="categories">🏷️ Kategori</button>
-      <button class="bo-nav-item" data-tab="stock">📦 Stok</button>
-      <button class="bo-nav-item" data-tab="void">🚫 Void</button>
-      <button class="bo-nav-item" data-tab="users">👥 Users</button>
-      <button class="bo-nav-item" data-tab="settings">⚙️ Pengaturan</button>
+      <button class="bo-nav-item active" data-tab="items">Item</button>
+      <button class="bo-nav-item" data-tab="categories">Kategori</button>
+      <button class="bo-nav-item" data-tab="stock">Stok</button>
+      <button class="bo-nav-item" data-tab="void">Void</button>
+      <button class="bo-nav-item" data-tab="users">Users</button>
+      <button class="bo-nav-item" data-tab="settings">Pengaturan</button>
     </nav>
     <div class="bo-sidebar-footer">
       <span id="boKasirName"></span>
@@ -34,7 +34,7 @@
     <!-- ══ Tab: Item ══ -->
     <section class="bo-tab active" id="tab-items">
       <div class="bo-toolbar">
-        <input type="text" id="menuSearch" placeholder="🔍 Cari item..." class="bo-search" />
+        <input type="text" id="menuSearch" placeholder="Cari item..." class="bo-search" />
         <select id="menuCatFilter" class="bo-select"><option value="">Semua Kategori</option></select>
       </div>
       <div class="bo-table-wrap">
@@ -58,7 +58,7 @@
     <!-- ══ Tab: Stok ══ -->
     <section class="bo-tab" id="tab-stock">
       <div class="bo-toolbar">
-        <input type="text" id="stockSearch" placeholder="🔍 Cari item..." class="bo-search" />
+        <input type="text" id="stockSearch" placeholder="Cari item..." class="bo-search" />
       </div>
       <div class="bo-table-wrap">
         <table class="bo-table">
@@ -73,13 +73,13 @@
       <div class="bo-void-grid">
         <!-- Meja aktif -->
         <div class="bo-void-panel">
-          <h3 class="bo-void-panel-title">🪑 Meja Aktif</h3>
+          <h3 class="bo-void-panel-title">Meja Aktif</h3>
           <p class="bo-void-panel-desc">Pilih meja untuk melakukan void pesanan.</p>
           <div id="voidTableGrid" class="void-table-grid"></div>
         </div>
         <!-- Riwayat void -->
         <div class="bo-void-panel">
-          <h3 class="bo-void-panel-title">📋 Riwayat Void</h3>
+          <h3 class="bo-void-panel-title">Riwayat Void</h3>
           <div class="bo-table-wrap" style="margin-top:.75rem">
             <table class="bo-table">
               <thead><tr><th>ID</th><th>Meja</th><th>Total</th><th>Kasir</th><th>Waktu</th><th>Keterangan</th></tr></thead>
@@ -104,7 +104,7 @@
     <section class="bo-tab" id="tab-settings">
       <div class="bo-settings-wrap">
         <div class="bo-settings-card">
-          <h3 class="bo-settings-title">🏪 Info Merchant</h3>
+          <h3 class="bo-settings-title">Info Merchant</h3>
           <p class="bo-settings-desc">Informasi ini akan tampil di struk pembayaran.</p>
           <form id="settingsForm">
             <div class="bo-form-grid">
@@ -130,7 +130,7 @@
               </div>
             </div>
             <div class="modal-actions" style="justify-content:flex-end;margin-top:1.5rem">
-              <button type="submit" class="btn btn-primary" id="settingsSaveBtn">💾 Simpan Pengaturan</button>
+              <button type="submit" class="btn btn-primary" id="settingsSaveBtn">Simpan Pengaturan</button>
             </div>
           </form>
         </div>
@@ -155,8 +155,8 @@
           <div class="form-group">
             <label>Stasiun <span style="font-size:.75rem;color:var(--text-muted);font-weight:400">(otomatis dari kategori)</span></label>
             <select id="mStation" disabled style="background:#f1f5f9;cursor:not-allowed">
-              <option value="kitchen">🍳 Kitchen</option>
-              <option value="bar">🍹 Bar</option>
+              <option value="kitchen">Kitchen</option>
+              <option value="bar">Bar</option>
             </select>
           </div>
           <div class="form-group">
@@ -190,8 +190,8 @@
           <div class="form-group">
             <label>Stasiun</label>
             <select id="cStation" required>
-              <option value="kitchen">🍳 Kitchen</option>
-              <option value="bar">🍹 Bar</option>
+              <option value="kitchen">Kitchen</option>
+              <option value="bar">Bar</option>
             </select>
           </div>
         </div>
@@ -233,7 +233,7 @@
   <!-- ══ Modal: Void ══ -->
   <div class="modal-overlay hidden" id="voidModal">
     <div class="modal bo-modal" style="max-width:420px">
-      <div style="font-size:2rem;text-align:center;margin-bottom:.5rem">🚫</div>
+      <div style="font-size:2rem;text-align:center;margin-bottom:.5rem"></div>
       <h3 id="voidModalTitle" style="text-align:center">Void Meja</h3>
       <p id="voidModalDesc" style="text-align:center;color:var(--text-muted);font-size:.9rem;margin:.5rem 0 1rem"></p>
       <div class="form-group">

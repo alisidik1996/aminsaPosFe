@@ -2,13 +2,13 @@
 const session = requireAuth();
 if (!session) throw new Error('Not authenticated');
 
-document.getElementById('kasirName').textContent    = '👤 ' + session.name;
+document.getElementById('kasirName').textContent    = '' + session.name;
 document.getElementById('currentDate').textContent  = new Date().toLocaleDateString('id-ID', {
   weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
 });
 
 document.getElementById('logoutBtn').addEventListener('click', () => {
-  Modal.confirm('🚪', 'Logout', 'Yakin ingin logout?', () => {
+  Modal.confirm('', 'Logout', 'Yakin ingin logout?', () => {
     sessionStorage.removeItem('pos_session');
     window.location.href = 'index.html';
   }, 'Ya, Logout', 'Batal', 'btn-danger');
@@ -24,9 +24,9 @@ async function renderTables() {
     const card = document.createElement('div');
     card.className = `table-card ${table.status}`;
     const timeInfo = table.status === 'occupied' && table.openedAt
-      ? `<div class="table-time">⏱ ${getElapsed(table.openedAt)}</div>` : '';
+      ? `<div class="table-time">${getElapsed(table.openedAt)}</div>` : '';
     card.innerHTML = `
-      <div class="table-icon">${table.status === 'available' ? '🪑' : '👥'}</div>
+      <div class="table-icon">${table.status === 'available' ? '' : ''}</div>
       <div class="table-name">${table.name}</div>
       <div class="table-status">${table.status === 'available' ? 'Tersedia' : 'Terisi'}</div>
       ${timeInfo}
@@ -51,7 +51,7 @@ async function openTableModal(table) {
       renderTables();
     }
     document.getElementById('modalDesc').textContent = `Ada tagihan UNPAID sebesar ${formatRp(bill.total)}.`;
-    confirmBtn.textContent = '💳 Lihat Bill & Bayar';
+    confirmBtn.textContent = 'Lihat Bill & Bayar';
     confirmBtn.className   = 'btn btn-success';
   } else if (table.status === 'available') {
     document.getElementById('modalDesc').textContent = 'Meja kosong. Buka pesanan baru?';
@@ -61,12 +61,12 @@ async function openTableModal(table) {
     const order = await API.getActiveOrderByTable(table.id).catch(() => null);
     if (order && order.status === 'open') {
       document.getElementById('modalDesc').textContent = 'Meja terisi. Lanjutkan pesanan?';
-      confirmBtn.textContent = '📋 Lanjut Pesanan';
+      confirmBtn.textContent = 'Lanjut Pesanan';
       confirmBtn.className   = 'btn btn-primary';
       if (!order.items?.length) voidBtn.classList.remove('hidden');
     } else {
       document.getElementById('modalDesc').textContent = 'Meja terisi tapi tidak ada tagihan aktif.';
-      confirmBtn.textContent = '📋 Lanjut Pesanan';
+      confirmBtn.textContent = 'Lanjut Pesanan';
       confirmBtn.className   = 'btn btn-primary';
       voidBtn.classList.remove('hidden');
     }
@@ -81,7 +81,7 @@ document.getElementById('modalCancel').addEventListener('click', () => {
 
 document.getElementById('modalVoid').addEventListener('click', () => {
   if (!selectedTableId) return;
-  Modal.confirm('🗑️', 'Batalkan Meja', 'Batalkan dan kosongkan meja ini?', async () => {
+  Modal.confirm('', 'Batalkan Meja', 'Batalkan dan kosongkan meja ini?', async () => {
     const order = await API.getActiveOrderByTable(selectedTableId).catch(() => null);
     if (order) await API.updateOrder(order.id, { status: 'cancelled' });
     await API.updateTable(selectedTableId, { status: 'available', openedAt: null, kasirId: null });

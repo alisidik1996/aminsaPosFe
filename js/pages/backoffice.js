@@ -2,10 +2,10 @@
 const session = requireAdmin();
 if (!session) throw new Error('Not admin');
 
-document.getElementById('boKasirName').textContent = '👤 ' + session.name;
+document.getElementById('boKasirName').textContent = '' + session.name;
 
 document.getElementById('boLogoutBtn').addEventListener('click', () => {
-  Modal.confirm('🚪', 'Logout', 'Yakin ingin logout?', () => {
+  Modal.confirm('', 'Logout', 'Yakin ingin logout?', () => {
     sessionStorage.removeItem('pos_session');
     window.location.href = 'index.html';
   }, 'Ya, Logout', 'Batal', 'btn-danger');
@@ -65,13 +65,13 @@ function renderMenuTable(items) {
       <td><img src="${item.image || ''}" class="menu-thumb" onerror="this.style.background='#e2e8f0';this.src=''" /></td>
       <td><strong>${item.name}</strong></td>
       <td>${item.category}</td>
-      <td><span class="bo-badge bo-badge-${item.station}">${item.station === 'kitchen' ? '🍳 Kitchen' : '🍹 Bar'}</span></td>
+      <td><span class="bo-badge bo-badge-${item.station}">${item.station === 'kitchen' ? 'Kitchen' : 'Bar'}</span></td>
       <td>${formatRp(item.price)}</td>
       <td><span class="item-stock ${item.stock <= 5 ? 'stock-low' : item.stock <= 10 ? 'stock-mid' : 'stock-ok'}">${item.stock}</span></td>
       <td><span class="bo-badge ${item.active ? 'bo-badge-active' : 'bo-badge-inactive'}">${item.active ? 'Aktif' : 'Nonaktif'}</span></td>
       <td><div class="bo-actions">
-        <button class="btn btn-outline btn-sm" onclick="openMenuModal(${item.id})">✏️ Edit</button>
-        <button class="btn btn-danger btn-sm" onclick="deleteMenu(${item.id}, '${item.name.replace(/'/g, "\\'")}')">🗑</button>
+        <button class="btn btn-outline btn-sm" onclick="openMenuModal(${item.id})">Edit</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteMenu(${item.id}, '${item.name.replace(/'/g, "\\'")}')"></button>
       </div></td>
     </tr>
   `).join('');
@@ -170,14 +170,14 @@ document.getElementById('menuForm').addEventListener('submit', async (e) => {
     else await API.addMenu(data);
     document.getElementById('menuModal').classList.add('hidden');
     await loadMenu();
-  } catch (err) { Modal.alert('❌', 'Gagal', err.message); }
+  } catch (err) { Modal.alert('', 'Gagal', err.message); }
   finally { saveBtn.disabled = false; saveBtn.textContent = 'Simpan'; }
 });
 
 async function deleteMenu(id, name) {
-  Modal.confirm('🗑️', 'Hapus Item', `Hapus item "${name}"?`, async () => {
+  Modal.confirm('', 'Hapus Item', `Hapus item "${name}"?`, async () => {
     try { await API.deleteMenu(id); await loadMenu(); }
-    catch (err) { Modal.alert('❌', 'Gagal', err.message); }
+    catch (err) { Modal.alert('', 'Gagal', err.message); }
   }, 'Ya, Hapus', 'Batal', 'btn-danger');
 }
 
@@ -193,10 +193,10 @@ function renderCategoriesTable(cats) {
   tbody.innerHTML = cats.map(c => `
     <tr>
       <td><strong>${c.name}</strong></td>
-      <td><span class="bo-badge bo-badge-${c.station}">${c.station === 'kitchen' ? '🍳 Kitchen' : '🍹 Bar'}</span></td>
+      <td><span class="bo-badge bo-badge-${c.station}">${c.station === 'kitchen' ? 'Kitchen' : 'Bar'}</span></td>
       <td><div class="bo-actions">
-        <button class="btn btn-outline btn-sm" onclick="openCategoryModal(${c.id})">✏️ Edit</button>
-        <button class="btn btn-danger btn-sm" onclick="deleteCategory(${c.id}, '${c.name.replace(/'/g, "\\'")}')">🗑</button>
+        <button class="btn btn-outline btn-sm" onclick="openCategoryModal(${c.id})">Edit</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteCategory(${c.id}, '${c.name.replace(/'/g, "\\'")}')"></button>
       </div></td>
     </tr>
   `).join('');
@@ -232,14 +232,14 @@ document.getElementById('catForm').addEventListener('submit', async (e) => {
     else await API.addCategory(data);
     document.getElementById('catModal').classList.add('hidden');
     await loadCategories();
-  } catch (err) { Modal.alert('❌', 'Gagal', err.message); }
+  } catch (err) { Modal.alert('', 'Gagal', err.message); }
   finally { saveBtn.disabled = false; saveBtn.textContent = 'Simpan'; }
 });
 
 async function deleteCategory(id, name) {
-  Modal.confirm('🗑️', 'Hapus Kategori', `Hapus kategori "${name}"?\n\nKategori yang masih digunakan tidak bisa dihapus.`, async () => {
+  Modal.confirm('', 'Hapus Kategori', `Hapus kategori "${name}"?\n\nKategori yang masih digunakan tidak bisa dihapus.`, async () => {
     try { await API.deleteCategory(id); await loadCategories(); }
-    catch (err) { Modal.alert('❌', 'Gagal', err.message); }
+    catch (err) { Modal.alert('', 'Gagal', err.message); }
   }, 'Ya, Hapus', 'Batal', 'btn-danger');
 }
 
@@ -261,7 +261,7 @@ function renderStockTable(items) {
       <td>${item.category}</td>
       <td><span class="item-stock ${item.stock <= buffer ? 'stock-low' : item.stock <= buffer * 2 ? 'stock-mid' : 'stock-ok'}">${item.stock}</span></td>
       <td><span class="bo-badge" style="background:#f1f5f9;color:#64748b">${buffer}</span></td>
-      <td><button class="btn btn-outline btn-sm" onclick="openStockModal(${item.id})">✏️ Edit</button></td>
+      <td><button class="btn btn-outline btn-sm" onclick="openStockModal(${item.id})">Edit</button></td>
     </tr>
   `;
   }).join('');
@@ -290,7 +290,7 @@ document.getElementById('stockModalForm').addEventListener('submit', async (e) =
   const stock = parseInt(document.getElementById('smStock').value);
   const buffer = parseInt(document.getElementById('smBuffer').value);
   if (isNaN(stock) || stock < 0 || isNaN(buffer) || buffer < 0) {
-    Modal.alert('⚠️', 'Input Tidak Valid', 'Stok dan buffer harus angka >= 0');
+    Modal.alert('', 'Input Tidak Valid', 'Stok dan buffer harus angka >= 0');
     return;
   }
   const saveBtn = document.getElementById('stockModalSave');
@@ -302,8 +302,8 @@ document.getElementById('stockModalForm').addEventListener('submit', async (e) =
     if (item) { item.stock = stock; item.buffer_stock = buffer; }
     document.getElementById('stockModal').classList.add('hidden');
     renderStockTable(allStockItems);
-    Modal.alert('✅', 'Berhasil', 'Stok dan buffer berhasil diupdate.');
-  } catch (err) { Modal.alert('❌', 'Gagal', err.message); }
+    Modal.alert('', 'Berhasil', 'Stok dan buffer berhasil diupdate.');
+  } catch (err) { Modal.alert('', 'Gagal', err.message); }
   finally { saveBtn.disabled = false; saveBtn.textContent = 'Simpan'; }
 });
 
@@ -326,9 +326,9 @@ function renderVoidTables() {
   }
   grid.innerHTML = activeTables.map(t => `
     <div class="void-table-card" onclick="openVoidModal(${t.id}, '${t.name}')">
-      <div class="void-table-icon">👥</div>
+      <div class="void-table-icon"></div>
       <div class="void-table-name">${t.name}</div>
-      <div class="void-table-time">⏱ ${getElapsed(t.openedAt)}</div>
+      <div class="void-table-time">${getElapsed(t.openedAt)}</div>
     </div>
   `).join('');
 }
@@ -370,8 +370,8 @@ document.getElementById('voidModalConfirm').addEventListener('click', async () =
     await API.voidTable(voidingTableId, reason);
     document.getElementById('voidModal').classList.add('hidden');
     await loadVoid();
-    Modal.alert('✅', 'Berhasil', 'Meja berhasil di-void.');
-  } catch (err) { Modal.alert('❌', 'Gagal', err.message); }
+    Modal.alert('', 'Berhasil', 'Meja berhasil di-void.');
+  } catch (err) { Modal.alert('', 'Gagal', err.message); }
   finally { btn.disabled = false; btn.textContent = 'Ya, Void'; }
 });
 
@@ -392,8 +392,8 @@ function renderUsersTable(users) {
       <td>${u.name}</td>
       <td><span class="bo-badge bo-badge-${u.role}">${u.role}</span></td>
       <td><div class="bo-actions">
-        <button class="btn btn-outline btn-sm" onclick="openUserModal(${u.id})">✏️ Edit</button>
-        <button class="btn btn-danger btn-sm" onclick="deleteUser(${u.id}, '${u.username.replace(/'/g, "\\'")}')">🗑</button>
+        <button class="btn btn-outline btn-sm" onclick="openUserModal(${u.id})">Edit</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteUser(${u.id}, '${u.username.replace(/'/g, "\\'")}')"></button>
       </div></td>
     </tr>
   `).join('');
@@ -424,17 +424,17 @@ document.getElementById('userForm').addEventListener('submit', async (e) => {
   if (password) data.password = password;
   try {
     if (editingUserId) await API.updateUser(editingUserId, data);
-    else { if (!password) { Modal.alert('⚠️', 'Password Wajib', 'Password wajib diisi untuk user baru.'); return; } await API.addUser(data); }
+    else { if (!password) { Modal.alert('', 'Password Wajib', 'Password wajib diisi untuk user baru.'); return; } await API.addUser(data); }
     document.getElementById('userModal').classList.add('hidden');
     await loadUsers();
-  } catch (err) { Modal.alert('❌', 'Gagal', err.message); }
+  } catch (err) { Modal.alert('', 'Gagal', err.message); }
 });
 
 async function deleteUser(id, username) {
-  if (id === session.id) { Modal.alert('⚠️', 'Tidak Bisa', 'Tidak bisa menghapus akun yang sedang login.'); return; }
-  Modal.confirm('🗑️', 'Hapus User', `Hapus user "${username}"?`, async () => {
+  if (id === session.id) { Modal.alert('', 'Tidak Bisa', 'Tidak bisa menghapus akun yang sedang login.'); return; }
+  Modal.confirm('', 'Hapus User', `Hapus user "${username}"?`, async () => {
     try { await API.deleteUser(id); await loadUsers(); }
-    catch (err) { Modal.alert('❌', 'Gagal', err.message); }
+    catch (err) { Modal.alert('', 'Gagal', err.message); }
   }, 'Ya, Hapus', 'Batal', 'btn-danger');
 }
 
@@ -448,7 +448,7 @@ async function loadSettings() {
     document.getElementById('sMerchantSocial').value  = settings.merchant_social || '';
     document.getElementById('sReceiptFooter').value   = settings.receipt_footer || '';
   } catch (err) {
-    Modal.alert('❌', 'Gagal Memuat', err.message);
+    Modal.alert('', 'Gagal Memuat', err.message);
   }
 }
 
@@ -466,12 +466,12 @@ document.getElementById('settingsForm').addEventListener('submit', async (e) => 
   saveBtn.textContent = 'Menyimpan...';
   try {
     await API.updateSettings(data);
-    Modal.alert('✅', 'Berhasil', 'Pengaturan berhasil disimpan.');
+    Modal.alert('', 'Berhasil', 'Pengaturan berhasil disimpan.');
   } catch (err) {
-    Modal.alert('❌', 'Gagal', err.message);
+    Modal.alert('', 'Gagal', err.message);
   } finally {
     saveBtn.disabled = false;
-    saveBtn.textContent = '💾 Simpan Pengaturan';
+    saveBtn.textContent = 'Simpan Pengaturan';
   }
 });
 
