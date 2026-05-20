@@ -323,3 +323,53 @@
 @media (max-width: 900px) {
   .bo-void-grid { grid-template-columns: 1fr; }
 }
+
+/* ── Logo Upload (Settings Tab) ── */
+.logo-upload-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: .75rem;
+}
+
+.logo-preview-box {
+  width: 160px;
+  height: 100px;
+  border: 2px dashed var(--border);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+  overflow: hidden;
+}
+
+.logo-preview-img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+.logo-preview-placeholder {
+  font-size: .8rem;
+  color: var(--text-muted);
+}
+
+.logo-upload-actions {
+  display: flex;
+  gap: .5rem;
+  align-items: center;
+}
+
+.logo-upload-label {
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+}
+
+.logo-upload-hint {
+  font-size: .78rem;
+  color: var(--text-muted);
+  margin: 0;
+}

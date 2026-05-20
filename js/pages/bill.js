@@ -6,14 +6,35 @@ const tableId = parseInt(sessionStorage.getItem('pos_current_table'));
 const billId  = parseInt(sessionStorage.getItem('pos_current_bill'));
 if (!tableId || !billId) window.location.href = 'dashboard.html';
 
-let table = null;
-let bill  = null;
+let table     = null;
+let bill      = null;
+let settings  = {};   // merchant settings (nama, logo, footer, dll)
 
 // ── Init ──────────────────────────────────────────────────────
 async function init() {
-  table = await API.getTable(tableId);
-  bill  = await API.getBill(billId);
+  [table, bill, settings] = await Promise.all([
+    API.getTable(tableId),
+    API.getBill(billId),
+    API.getSettings().catch(() => ({})),
+  ]);
   if (!bill) { window.location.href = 'dashboard.html'; return; }
+
+  // Terapkan nama & logo merchant dari settings ke navbar/header
+  const merchantName = settings.merchant_name || 'CafePos';
+  document.querySelectorAll('.bill-logo, .nav-brand-text').forEach(el => {
+    el.textContent = merchantName;
+  });
+  // Tampilkan logo di header bill jika ada
+  const logoEl = document.getElementById('billLogoImg');
+  if (logoEl) {
+    if (settings.merchant_logo) {
+      logoEl.src = settings.merchant_logo;
+      logoEl.classList.remove('hidden');
+    } else {
+      logoEl.classList.add('hidden');
+    }
+  }
+
   document.getElementById('kasirName').textContent  = '' + session.name;
   document.getElementById('tableLabel').textContent = table?.name || '';
   renderBill();
@@ -146,8 +167,13 @@ document.getElementById('payBtn').addEventListener('click', async () => {
 
 // ── Print struk ───────────────────────────────────────────────
 function buildReceiptHTML(isPaid) {
-  const cafeName = document.querySelector('.bill-logo')?.textContent || 'CafePos';
-  const sep      = '─'.repeat(32);
+  const merchantName    = settings.merchant_name    || 'CafePos';
+  const merchantAddress = settings.merchant_address || '';
+  const merchantPhone   = settings.merchant_phone   || '';
+  const merchantSocial  = settings.merchant_social  || '';
+  const receiptFooter   = settings.receipt_footer   || 'Terima kasih atas kunjungan Anda!';
+  const logoBase64      = settings.merchant_logo    || '';
+
   const itemRows = bill.items.map(i =>
     `<tr>
       <td>${i.name}</td>
@@ -176,11 +202,23 @@ function buildReceiptHTML(isPaid) {
     }
   }
 
+  const logoHTML = logoBase64
+    ? `<img src="${logoBase64}" style="max-width:80px;max-height:60px;object-fit:contain;margin-bottom:6px;display:block;margin-left:auto;margin-right:auto" />`
+    : '';
+
+  const addressHTML = merchantAddress
+    ? `<div style="font-size:10px;color:#444;margin-top:2px">${merchantAddress.replace(/\n/g, '<br>')}</div>`
+    : '';
+  const phoneHTML  = merchantPhone  ? `<div style="font-size:10px;color:#444">${merchantPhone}</div>`  : '';
+  const socialHTML = merchantSocial ? `<div style="font-size:10px;color:#444">${merchantSocial}</div>` : '';
+
   return `
     <div style="font-family:'Courier New',monospace;font-size:12px;width:280px;margin:0 auto;color:#000">
       <div style="text-align:center;margin-bottom:8px">
-        <div style="font-size:16px;font-weight:bold">${cafeName}</div>
-        <div style="font-size:11px">${formatDate(bill.createdAt)}</div>
+        ${logoHTML}
+        <div style="font-size:16px;font-weight:bold">${merchantName}</div>
+        ${addressHTML}${phoneHTML}${socialHTML}
+        <div style="font-size:11px;margin-top:4px">${formatDate(bill.createdAt)}</div>
         <div style="font-size:11px">Kasir: ${bill.kasirName}</div>
         <div style="font-size:11px">Meja: ${bill.tableName}</div>
         <div style="font-size:11px">No. Bill: #${bill.id}</div>
@@ -212,7 +250,7 @@ function buildReceiptHTML(isPaid) {
       ${bill.note ? `<div style="margin-top:6px;font-size:11px;border-top:1px dashed #000;padding-top:4px">Catatan: ${bill.note}</div>` : ''}
       <div style="text-align:center;margin-top:10px;font-size:11px;border-top:1px dashed #000;padding-top:6px">
         ${isPaid
-          ? '<strong>LUNAS</strong><br>Terima kasih atas kunjungan Anda!'
+          ? `<strong>LUNAS</strong><br>${receiptFooter}`
           : '<em>** BELUM DIBAYAR **</em>'
         }
       </div>

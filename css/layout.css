@@ -82,6 +82,10 @@
   margin-bottom: 1rem; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: .4rem;
 }
 .bill-logo { font-size: 1.2rem; font-weight: 700; color: var(--primary); }
+.bill-logo-img {
+  max-width: 120px; max-height: 60px; object-fit: contain;
+  margin-bottom: .25rem; align-self: flex-start;
+}
 .bill-info { display: flex; flex-direction: column; gap: .2rem; font-size: .85rem; color: var(--text-muted); }
 .bill-status { margin-top: .5rem; }
 .bill-items { background: var(--surface); border-radius: 14px; padding: 1rem; margin-bottom: 1rem; box-shadow: var(--shadow); }

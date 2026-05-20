@@ -108,6 +108,26 @@
           <p class="bo-settings-desc">Informasi ini akan tampil di struk pembayaran.</p>
           <form id="settingsForm">
             <div class="bo-form-grid">
+
+              <!-- Logo Upload -->
+              <div class="form-group bo-full">
+                <label>Logo Merchant</label>
+                <div class="logo-upload-wrap">
+                  <div class="logo-preview-box" id="logoPreviewBox">
+                    <img id="logoPreview" src="" alt="Logo" class="logo-preview-img hidden" />
+                    <span class="logo-preview-placeholder" id="logoPlaceholder">Belum ada logo</span>
+                  </div>
+                  <div class="logo-upload-actions">
+                    <label class="btn btn-outline btn-sm logo-upload-label" for="logoFileInput">
+                      Pilih Gambar
+                    </label>
+                    <input type="file" id="logoFileInput" accept="image/png,image/jpeg,image/webp,image/svg+xml" style="display:none" />
+                    <button type="button" class="btn btn-danger btn-sm hidden" id="logoRemoveBtn">Hapus Logo</button>
+                  </div>
+                  <p class="logo-upload-hint">Format: PNG, JPG, WebP, SVG. Maks 500 KB. Disarankan rasio 1:1 atau landscape.</p>
+                </div>
+              </div>
+
               <div class="form-group bo-full">
                 <label>Nama Merchant</label>
                 <input type="text" id="sMerchantName" placeholder="Contoh: Waltie's Rooftop Cafe" />

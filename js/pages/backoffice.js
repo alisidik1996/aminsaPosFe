@@ -439,6 +439,8 @@ async function deleteUser(id, username) {
 }
 
 // ══ SETTINGS ══════════════════════════════════════════════════
+let currentLogoBase64 = ''; // menyimpan logo aktif (base64 string)
+
 async function loadSettings() {
   try {
     const settings = await API.getSettings();
@@ -447,10 +449,59 @@ async function loadSettings() {
     document.getElementById('sMerchantPhone').value   = settings.merchant_phone || '';
     document.getElementById('sMerchantSocial').value  = settings.merchant_social || '';
     document.getElementById('sReceiptFooter').value   = settings.receipt_footer || '';
+
+    // Load logo
+    currentLogoBase64 = settings.merchant_logo || '';
+    applyLogoPreview(currentLogoBase64);
   } catch (err) {
     Modal.alert('', 'Gagal Memuat', err.message);
   }
 }
+
+function applyLogoPreview(base64) {
+  const img         = document.getElementById('logoPreview');
+  const placeholder = document.getElementById('logoPlaceholder');
+  const removeBtn   = document.getElementById('logoRemoveBtn');
+  if (base64) {
+    img.src = base64;
+    img.classList.remove('hidden');
+    placeholder.classList.add('hidden');
+    removeBtn.classList.remove('hidden');
+  } else {
+    img.src = '';
+    img.classList.add('hidden');
+    placeholder.classList.remove('hidden');
+    removeBtn.classList.add('hidden');
+  }
+}
+
+// Pilih file gambar → convert ke Base64
+document.getElementById('logoFileInput').addEventListener('change', function () {
+  const file = this.files[0];
+  if (!file) return;
+
+  if (file.size > 500 * 1024) {
+    Modal.alert('', 'File Terlalu Besar', 'Ukuran logo maksimal 500 KB.');
+    this.value = '';
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    currentLogoBase64 = e.target.result;
+    applyLogoPreview(currentLogoBase64);
+  };
+  reader.readAsDataURL(file);
+});
+
+// Hapus logo
+document.getElementById('logoRemoveBtn').addEventListener('click', () => {
+  Modal.confirm('', 'Hapus Logo', 'Hapus logo merchant?', () => {
+    currentLogoBase64 = '';
+    applyLogoPreview('');
+    document.getElementById('logoFileInput').value = '';
+  }, 'Ya, Hapus', 'Batal', 'btn-danger');
+});
 
 document.getElementById('settingsForm').addEventListener('submit', async (e) => {
   e.preventDefault();
@@ -460,6 +511,7 @@ document.getElementById('settingsForm').addEventListener('submit', async (e) => 
     merchant_phone:   document.getElementById('sMerchantPhone').value.trim(),
     merchant_social:  document.getElementById('sMerchantSocial').value.trim(),
     receipt_footer:   document.getElementById('sReceiptFooter').value.trim(),
+    merchant_logo:    currentLogoBase64,
   };
   const saveBtn = document.getElementById('settingsSaveBtn');
   saveBtn.disabled = true;
