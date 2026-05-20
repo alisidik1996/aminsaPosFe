@@ -93,4 +93,10 @@ const API = {
   voidTable:       (tableId, reason) => http('POST', `/void/table/${tableId}`, { reason }),
   voidBill:        (billId,  reason) => http('POST', `/void/bill/${billId}`,   { reason }),
   getVoidHistory:  ()                => http('GET',  '/void/history'),
+
+  // ── STATION VIEW ─────────────────────────────────────────
+  getStationItems:   (station) => http('GET',  `/station/${station}/items`),
+  getPendingItems:   (station) => http('GET',  `/station/${station}/pending`),
+  completeItem:      (itemId)  => http('POST', `/station/items/${itemId}/complete`),
+  undoCompleteItem:  (itemId)  => http('POST', `/station/items/${itemId}/undo`),
 };

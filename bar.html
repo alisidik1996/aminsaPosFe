@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Bar Dashboard — CafePos</title>
+  <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="css/components.css" />
+  <link rel="stylesheet" href="css/layout.css" />
+  <style>
+    .station-body {
+      background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+      min-height: 100vh;
+    }
+    .station-header {
+      background: #1e40af;
+      color: #fff;
+      padding: 1rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 4px 12px rgba(30, 64, 175, 0.2);
+    }
+    .station-title {
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+      font-size: 1.3rem;
+      font-weight: 700;
+    }
+    .station-icon {
+      font-size: 1.8rem;
+    }
+    .station-time {
+      font-size: .9rem;
+      opacity: .9;
+    }
+    .station-main {
+      padding: 1.5rem;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .station-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 1.25rem;
+    }
+    .order-card {
+      background: #fff;
+      border-radius: 14px;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+      overflow: hidden;
+      border: 2px solid #93c5fd;
+      transition: all .2s;
+    }
+    .order-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 10px 24px rgba(0,0,0,0.12);
+      border-color: #3b82f6;
+    }
+    .order-card.completed {
+      opacity: .7;
+      border-color: #d1d5db;
+    }
+    .order-header {
+      background: #dbeafe;
+      padding: 1rem 1.25rem;
+      border-bottom: 2px solid #93c5fd;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .order-header.completed {
+      background: #f3f4f6;
+      border-color: #d1d5db;
+    }
+    .order-table {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: #1e40af;
+    }
+    .order-table.completed {
+      color: #6b7280;
+    }
+    .order-time {
+      font-size: .8rem;
+      color: #1d4ed8;
+      display: flex;
+      align-items: center;
+      gap: .3rem;
+    }
+    .order-time.completed {
+      color: #9ca3af;
+    }
+    .order-kasir {
+      font-size: .85rem;
+      color: #1e3a8a;
+      margin-top: .2rem;
+    }
+    .order-kasir.completed {
+      color: #6b7280;
+    }
+    .order-items {
+      padding: 1rem 1.25rem;
+    }
+    .order-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: .6rem 0;
+      border-bottom: 1px solid #f3f4f6;
+    }
+    .order-item:last-child {
+      border-bottom: none;
+    }
+    .item-name {
+      font-weight: 600;
+      font-size: .95rem;
+    }
+    .item-qty {
+      background: #dbeafe;
+      color: #1e40af;
+      padding: .2rem .6rem;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: .85rem;
+    }
+    .item-qty.completed {
+      background: #e5e7eb;
+      color: #6b7280;
+    }
+    .item-actions {
+      display: flex;
+      gap: .5rem;
+    }
+    .order-note {
+      background: #f8fafc;
+      border-top: 1px dashed #cbd5e1;
+      padding: .75rem 1.25rem;
+      font-size: .85rem;
+      color: #475569;
+      font-style: italic;
+    }
+    .order-note.completed {
+      background: #f1f5f9;
+      color: #94a3b8;
+    }
+    .empty-state {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 3rem 1rem;
+      color: #1e40af;
+      font-size: 1.1rem;
+    }
+    .empty-icon {
+      font-size: 3rem;
+      margin-bottom: .5rem;
+      opacity: .5;
+    }
+    .refresh-btn {
+      position: fixed;
+      bottom: 1.5rem;
+      right: 1.5rem;
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: #1e40af;
+      color: #fff;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(30, 64, 175, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all .2s;
+    }
+    .refresh-btn:hover {
+      background: #1e3a8a;
+      transform: scale(1.05);
+    }
+    .refresh-btn:active {
+      transform: scale(.95);
+    }
+    .status-badge {
+      padding: .25rem .75rem;
+      border-radius: 20px;
+      font-size: .75rem;
+      font-weight: 700;
+    }
+    .status-pending {
+      background: #dbeafe;
+      color: #1e40af;
+    }
+    .status-completed {
+      background: #dcfce7;
+      color: #15803d;
+    }
+  </style>
+</head>
+<body class="station-body">
+  <header class="station-header">
+    <div class="station-title">
+      <span class="station-icon">🍹</span>
+      <span>Bar Dashboard</span>
+    </div>
+    <div class="station-time" id="currentTime"></div>
+  </header>
+  <main class="station-main">
+    <div class="station-grid" id="ordersGrid">
+      <!-- Order cards akan diisi oleh JavaScript -->
+    </div>
+  </main>
+  <button class="refresh-btn" id="refreshBtn">↻</button>
+  <script src="js/core/api.js"></script>
+  <script src="js/core/modal.js"></script>
+  <script src="js/core/utils.js"></script>
+  <script src="js/pages/bar.js"></script>
+</body>
+</html>
