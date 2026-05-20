@@ -176,3 +176,126 @@
   border-color: var(--primary); background: var(--primary); color: #fff;
   transform: translateY(-2px);
 }
+
+/* ===== STATION: Log Sidebar ===== */
+.log-toggle-btn {
+  position: fixed;
+  top: 1.25rem;
+  right: 1.25rem;
+  background: rgba(0,0,0,.35);
+  color: #fff;
+  border: none;
+  border-radius: 20px;
+  padding: .45rem 1rem;
+  font-size: .85rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+  z-index: 100;
+  backdrop-filter: blur(4px);
+}
+.log-toggle-btn:hover { background: rgba(0,0,0,.5); }
+
+.log-badge {
+  background: #ef4444;
+  color: #fff;
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  font-size: .7rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.log-sidebar {
+  position: fixed;
+  top: 0; right: -360px;
+  width: 340px;
+  height: 100vh;
+  background: #fff;
+  box-shadow: -4px 0 24px rgba(0,0,0,.15);
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  transition: right .3s ease;
+  overflow: hidden;
+}
+.log-sidebar.open { right: 0; }
+
+.log-sidebar-header {
+  padding: 1rem 1.25rem;
+  background: #1e293b;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: 700;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+.log-close-btn {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 1.3rem;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0 .25rem;
+}
+.log-close-btn:hover { opacity: .7; }
+
+.log-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: .75rem;
+}
+
+.log-entry {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: .75rem;
+  margin-bottom: .6rem;
+}
+.log-entry-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: .4rem;
+}
+.log-table {
+  font-weight: 700;
+  font-size: .9rem;
+  color: #1e293b;
+}
+.log-time {
+  font-size: .75rem;
+  color: #94a3b8;
+}
+.log-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .3rem;
+}
+.log-item-chip {
+  background: #e2e8f0;
+  color: #475569;
+  border-radius: 12px;
+  padding: .15rem .6rem;
+  font-size: .78rem;
+  font-weight: 500;
+}
+
+/* ── Service: ready card highlight ── */
+.order-card.ready {
+  border-color: #22c55e;
+  box-shadow: 0 0 0 3px rgba(34,197,94,.15), 0 6px 16px rgba(0,0,0,.08);
+}
+.order-header.ready {
+  background: #dcfce7;
+  border-color: #86efac;
+}

@@ -207,10 +207,23 @@
     <div class="station-time" id="currentTime"></div>
   </header>
   <main class="station-main">
-    <div class="station-grid" id="ordersGrid">
-      <!-- Order cards akan diisi oleh JavaScript -->
-    </div>
+    <div class="station-grid" id="ordersGrid"></div>
   </main>
+
+  <!-- Tombol buka log -->
+  <button class="log-toggle-btn" id="logToggleBtn">
+    📋 Log <span class="log-badge" id="logBadge" style="display:none"></span>
+  </button>
+
+  <!-- Sidebar log -->
+  <div class="log-sidebar" id="logSidebar">
+    <div class="log-sidebar-header">
+      <span>📋 Log Selesai — Bar</span>
+      <button class="log-close-btn" id="logCloseBtn">✕</button>
+    </div>
+    <div class="log-list" id="logList"></div>
+  </div>
+
   <button class="refresh-btn" id="refreshBtn">↻</button>
   <script src="js/core/api.js"></script>
   <script src="js/core/modal.js"></script>

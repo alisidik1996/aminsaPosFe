@@ -1,17 +1,16 @@
 // ===== PAGE: Service Dashboard =====
-// Untuk waiter/service staff melihat status semua order
+// Waiter melihat status order — siap disajikan atau masih diproses
 
-let allOrders = [];
+let allOrders  = [];   // order aktif (ditampilkan di grid)
+let logOrders  = [];   // order yang sudah disajikan (sidebar log)
 let refreshInterval = null;
 
-// ── Update waktu ──────────────────────────────────────────────
+// ── Waktu ─────────────────────────────────────────────────────
 function updateTime() {
-  const now = new Date();
-  document.getElementById('currentTime').textContent = 
-    now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  document.getElementById('currentTime').textContent =
+    new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 }
 
-// ── Format elapsed time ───────────────────────────────────────
 function formatElapsed(iso) {
   const diff = Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
   if (diff < 1) return 'Baru saja';
@@ -19,149 +18,184 @@ function formatElapsed(iso) {
   return `${Math.floor(diff / 60)} jam ${diff % 60} mnt lalu`;
 }
 
-// ── Load data dari kedua station ──────────────────────────────
+// ── Load data ─────────────────────────────────────────────────
 async function loadData() {
   try {
     const [kitchenItems, barItems] = await Promise.all([
       API.getStationItems('kitchen').catch(() => []),
       API.getStationItems('bar').catch(() => []),
     ]);
-    
-    // Gabungkan semua items
+
     const allItems = [...kitchenItems, ...barItems];
-    
-    // Group by order
-    const orders = {};
+    const map = {};
+
     allItems.forEach(item => {
-      if (!orders[item.order_id]) {
-        orders[item.order_id] = {
-          order_id: item.order_id,
-          table_id: item.table_id,
-          table_name: item.table_name,
-          kasir_name: item.kasir_name,
-          order_note: item.order_note,
+      if (!map[item.order_id]) {
+        map[item.order_id] = {
+          order_id:      item.order_id,
+          table_name:    item.table_name,
+          kasir_name:    item.kasir_name,
+          order_note:    item.order_note,
           order_created: item.order_created,
-          items: [],
-          kitchenPending: 0,
-          barPending: 0,
-          kitchenCompleted: 0,
-          barCompleted: 0,
+          items:         [],
+          pendingCount:  0,
+          totalCount:    0,
+          served:        false,   // ditandai sudah disajikan oleh waiter
         };
       }
-      orders[item.order_id].items.push(item);
-      if (item.station === 'kitchen') {
-        if (item.completed_at) orders[item.order_id].kitchenCompleted++;
-        else orders[item.order_id].kitchenPending++;
-      } else if (item.station === 'bar') {
-        if (item.completed_at) orders[item.order_id].barCompleted++;
-        else orders[item.order_id].barPending++;
-      }
+      map[item.order_id].items.push(item);
+      map[item.order_id].totalCount++;
+      if (!item.completed_at) map[item.order_id].pendingCount++;
     });
-    
-    allOrders = Object.values(orders);
-    renderOrders();
+
+    // Pertahankan status 'served' dari state sebelumnya
+    const prevServed = new Set([...logOrders.map(o => o.order_id)]);
+    const orders = Object.values(map);
+
+    allOrders = orders.filter(o => !prevServed.has(o.order_id));
+    // logOrders tetap dari state sebelumnya (tidak di-reset saat refresh)
+
+    renderGrid();
+    renderLog();
   } catch (err) {
     console.error('Gagal load data:', err);
-    if (allOrders.length === 0) {
+    if (!allOrders.length) {
       document.getElementById('ordersGrid').innerHTML = `
         <div class="empty-state">
           <div class="empty-icon">⚠️</div>
           <div>Tidak dapat terhubung ke server.</div>
-          <div style="font-size:.9rem;color:#0369a1;margin-top:.5rem">Pastikan backend berjalan di localhost:3000</div>
-        </div>
-      `;
+        </div>`;
     }
   }
 }
 
-// ── Render orders ─────────────────────────────────────────────
-function renderOrders() {
+// ── Render grid ───────────────────────────────────────────────
+function renderGrid() {
   const grid = document.getElementById('ordersGrid');
-  
+
   if (!allOrders.length) {
     grid.innerHTML = `
       <div class="empty-state">
         <div class="empty-icon">👨‍🍳</div>
         <div>Tidak ada pesanan aktif saat ini.</div>
-        <div style="font-size:.9rem;color:#0284c7;margin-top:.5rem">Semua order sudah selesai atau belum ada pesanan</div>
-      </div>
-    `;
+        <div style="font-size:.9rem;opacity:.7;margin-top:.5rem">Semua sudah disajikan atau belum ada pesanan</div>
+      </div>`;
     return;
   }
 
   grid.innerHTML = allOrders.map(order => {
-    const totalItems = order.items.length;
-    const totalPending = order.kitchenPending + order.barPending;
-    const totalCompleted = order.kitchenCompleted + order.barCompleted;
-    const isReady = totalPending === 0 && totalCompleted > 0;
-    
+    const isReady = order.pendingCount === 0 && order.totalCount > 0;
+    const kitchenItems = order.items.filter(i => i.station === 'kitchen');
+    const barItems     = order.items.filter(i => i.station === 'bar');
+    const kitchenDone  = kitchenItems.filter(i => i.completed_at).length;
+    const barDone      = barItems.filter(i => i.completed_at).length;
+
     return `
-      <div class="order-card">
-        <div class="order-header">
+      <div class="order-card ${isReady ? 'ready' : ''}">
+        <div class="order-header ${isReady ? 'ready' : ''}">
           <div>
             <div class="order-table">${order.table_name}</div>
-            <div class="order-time">
-              <span>⏱</span>
-              <span>${formatElapsed(order.order_created)}</span>
-            </div>
+            <div class="order-time">⏱ ${formatElapsed(order.order_created)}</div>
             <div class="order-kasir">Kasir: ${order.kasir_name}</div>
           </div>
           <div class="status-badge ${isReady ? 'status-ready' : 'status-pending'}">
-            ${isReady ? 'SIAP DISAJIKAN' : 'DALAM PROSES'}
+            ${isReady ? '✅ SIAP DISAJIKAN' : '⏳ DALAM PROSES'}
           </div>
         </div>
         <div class="order-items">
-          <div style="display:flex;justify-content:space-between;margin-bottom:.75rem;font-size:.85rem">
-            <div>
-              <div style="color:#92400e;font-weight:600">🍳 Kitchen</div>
-              <div>${order.kitchenCompleted}/${order.kitchenCompleted + order.kitchenPending} selesai</div>
-            </div>
-            <div style="text-align:right">
-              <div style="color:#1e40af;font-weight:600">🍹 Bar</div>
-              <div>${order.barCompleted}/${order.barCompleted + order.barPending} selesai</div>
-            </div>
+          <div style="display:flex;gap:1rem;margin-bottom:.75rem;font-size:.85rem">
+            ${kitchenItems.length ? `
+              <div>
+                <div style="font-weight:600;color:#92400e">🍳 Kitchen</div>
+                <div>${kitchenDone}/${kitchenItems.length} selesai</div>
+              </div>` : ''}
+            ${barItems.length ? `
+              <div>
+                <div style="font-weight:600;color:#1e40af">🍹 Bar</div>
+                <div>${barDone}/${barItems.length} selesai</div>
+              </div>` : ''}
           </div>
-          ${order.items.slice(0, 3).map(item => `
+          ${order.items.map(item => `
             <div class="order-item">
               <div>
                 <div class="item-name">${item.name}</div>
-                <div class="item-station">${item.station === 'kitchen' ? '🍳 Kitchen' : '🍹 Bar'} • ${item.completed_at ? '✅ Selesai' : '⏳ Proses'}</div>
+                <div style="font-size:.75rem;color:#64748b">
+                  ${item.station === 'kitchen' ? '🍳' : '🍹'}
+                  ${item.completed_at ? '<span style="color:#15803d">✅ Selesai</span>' : '<span style="color:#b45309">⏳ Proses</span>'}
+                </div>
               </div>
               <span class="item-qty">×${item.qty}</span>
-            </div>
-          `).join('')}
-          ${order.items.length > 3 ? `
-            <div style="text-align:center;padding:.5rem;color:#64748b;font-size:.85rem">
-              +${order.items.length - 3} item lainnya
-            </div>
-          ` : ''}
+            </div>`).join('')}
         </div>
-        ${order.order_note ? `
-          <div class="order-note">
-            <strong>Catatan:</strong> ${order.order_note}
-          </div>
-        ` : ''}
-      </div>
-    `;
+        ${order.order_note ? `<div class="order-note"><strong>Catatan:</strong> ${order.order_note}</div>` : ''}
+        ${isReady ? `
+          <div style="padding:.75rem 1.25rem;border-top:1px solid #e5e7eb">
+            <button class="btn btn-primary btn-full" onclick="markServed(${order.order_id})">
+              🍽️ Sudah Disajikan
+            </button>
+          </div>` : ''}
+      </div>`;
   }).join('');
+}
+
+// ── Render sidebar log ────────────────────────────────────────
+function renderLog() {
+  const list  = document.getElementById('logList');
+  const badge = document.getElementById('logBadge');
+
+  badge.textContent = logOrders.length || '';
+  badge.style.display = logOrders.length ? 'inline-flex' : 'none';
+
+  if (!logOrders.length) {
+    list.innerHTML = '<div style="padding:1rem;color:#94a3b8;font-size:.85rem;text-align:center">Belum ada log hari ini</div>';
+    return;
+  }
+
+  list.innerHTML = logOrders.map(order => `
+    <div class="log-entry">
+      <div class="log-entry-header">
+        <span class="log-table">${order.table_name}</span>
+        <span class="log-time">${formatElapsed(order.order_created)}</span>
+      </div>
+      <div class="log-items">
+        ${order.items.map(i => `<span class="log-item-chip">${i.name} ×${i.qty}</span>`).join('')}
+      </div>
+      <div style="font-size:.75rem;color:#15803d;margin-top:.3rem">🍽️ Sudah disajikan</div>
+    </div>`).join('');
+}
+
+// ── Mark order sudah disajikan ────────────────────────────────
+function markServed(orderId) {
+  const order = allOrders.find(o => o.order_id === orderId);
+  if (!order) return;
+  order.served = true;
+  logOrders.unshift(order);                              // tambah ke atas log
+  allOrders = allOrders.filter(o => o.order_id !== orderId);
+  renderGrid();
+  renderLog();
+}
+
+// ── Toggle sidebar log ────────────────────────────────────────
+function toggleLog() {
+  document.getElementById('logSidebar').classList.toggle('open');
 }
 
 // ── Event listeners ───────────────────────────────────────────
 document.getElementById('refreshBtn').addEventListener('click', () => {
   loadData();
-  // Animasi tombol refresh
   const btn = document.getElementById('refreshBtn');
   btn.style.transform = 'rotate(180deg)';
-  setTimeout(() => { btn.style.transform = 'rotate(0)'; }, 300);
+  setTimeout(() => { btn.style.transform = ''; }, 300);
 });
 
-// ── Auto refresh setiap 10 detik ──────────────────────────────
+document.getElementById('logToggleBtn').addEventListener('click', toggleLog);
+document.getElementById('logCloseBtn').addEventListener('click', toggleLog);
+
 function startAutoRefresh() {
   if (refreshInterval) clearInterval(refreshInterval);
-  refreshInterval = setInterval(loadData, 10000); // 10 detik
+  refreshInterval = setInterval(loadData, 15000);
 }
 
-// ── Init ──────────────────────────────────────────────────────
 async function init() {
   updateTime();
   setInterval(updateTime, 1000);
@@ -169,4 +203,5 @@ async function init() {
   startAutoRefresh();
 }
 
+window.markServed = markServed;
 init();
