@@ -143,12 +143,16 @@ async function sendOrder() {
 
   await API.updateOrder(orderId, { items, note, status: 'sent' });
 
-  // Kurangi stok
+  // Kurangi stok — ambil stok terkini dari server untuk menghindari race condition
   for (const item of items) {
-    const menuItem = MENU_DATA.find(m => m.id === item.id);
-    if (menuItem) {
-      await API.updateMenuStock(item.id, Math.max(0, menuItem.stock - item.qty));
-      menuItem.stock = Math.max(0, menuItem.stock - item.qty);
+    try {
+      const freshMenu = await API.getMenu().then(list => list.find(m => m.id === item.id));
+      if (freshMenu) {
+        await API.updateMenuStock(item.id, Math.max(0, freshMenu.stock - item.qty));
+      }
+    } catch (e) {
+      // Jika gagal update stok, lanjutkan saja (tidak blokir proses order)
+      console.warn('Gagal update stok untuk item', item.id, e);
     }
   }
 
