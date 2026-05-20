@@ -99,4 +99,19 @@ const API = {
   getPendingItems:   (station) => http('GET',  `/station/${station}/pending`),
   completeItem:      (itemId)  => http('POST', `/station/items/${itemId}/complete`),
   undoCompleteItem:  (itemId)  => http('POST', `/station/items/${itemId}/undo`),
+
+  // ── INGREDIENTS ──────────────────────────────────────────
+  getIngredients:    ()          => http('GET',    '/ingredients'),
+  addIngredient:     (data)      => http('POST',   '/ingredients', data),
+  updateIngredient:  (id, data)  => http('PUT',    `/ingredients/${id}`, data),
+  adjustIngredientStock: (id, delta) => http('PATCH', `/ingredients/${id}/stock`, { delta }),
+  deleteIngredient:  (id)        => http('DELETE', `/ingredients/${id}`),
+
+  // ── RECIPES ──────────────────────────────────────────────
+  getRecipes:        ()          => http('GET',    '/recipes'),
+  getRecipeByMenu:   (menuId)    => http('GET',    `/recipes/menu/${menuId}`),
+  createRecipe:      (data)      => http('POST',   '/recipes', data),
+  updateRecipe:      (id, data)  => http('PUT',    `/recipes/${id}`, data),
+  deleteRecipe:      (id)        => http('DELETE', `/recipes/${id}`),
+  syncAllRecipes:    ()          => http('POST',   '/recipes/sync-all'),
 };

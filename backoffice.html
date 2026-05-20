@@ -15,6 +15,8 @@
       <button class="bo-nav-item active" data-tab="items">Item</button>
       <button class="bo-nav-item" data-tab="categories">Kategori</button>
       <button class="bo-nav-item" data-tab="stock">Stok</button>
+      <button class="bo-nav-item" data-tab="ingredients">Bahan Baku</button>
+      <button class="bo-nav-item" data-tab="recipes">Resep</button>
       <button class="bo-nav-item" data-tab="void">Void</button>
       <button class="bo-nav-item" data-tab="users">Users</button>
       <button class="bo-nav-item" data-tab="settings">Pengaturan</button>
@@ -68,8 +70,26 @@
       </div>
     </section>
 
-    <!-- ══ Tab: Void ══ -->
-    <section class="bo-tab" id="tab-void">
+    <!-- ══ Tab: Bahan Baku ══ -->
+    <section class="bo-tab" id="tab-ingredients">
+      <div class="bo-table-wrap">
+        <table class="bo-table">
+          <thead><tr><th>Nama Bahan</th><th>Satuan</th><th>Stok</th><th>Min. Stok</th><th>Harga/Satuan</th><th>Status</th><th>Aksi</th></tr></thead>
+          <tbody id="ingredientsTbody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ══ Tab: Resep ══ -->
+    <section class="bo-tab" id="tab-recipes">
+      <div class="bo-toolbar">
+        <input type="text" id="recipeSearch" placeholder="Cari resep..." class="bo-search" />
+        <button class="btn btn-outline btn-sm" id="syncAllBtn">↻ Sync Semua Stok</button>
+      </div>
+      <div id="recipeCards" class="recipe-cards-grid"></div>
+    </section>
+
+    <!-- ══ Tab: Void ══ -->    <section class="bo-tab" id="tab-void">
       <div class="bo-void-grid">
         <!-- Meja aktif -->
         <div class="bo-void-panel">
@@ -281,6 +301,113 @@
         <div class="modal-actions">
           <button type="button" class="btn btn-secondary" id="userModalCancel">Batal</button>
           <button type="submit" class="btn btn-primary">Simpan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ══ Modal: Bahan Baku ══ -->
+  <div class="modal-overlay hidden" id="ingredientModal">
+    <div class="modal bo-modal" style="max-width:480px">
+      <h3 id="ingredientModalTitle">Tambah Bahan Baku</h3>
+      <form id="ingredientForm">
+        <div class="bo-form-grid">
+          <div class="form-group bo-full">
+            <label>Nama Bahan</label>
+            <input type="text" id="ingName" required placeholder="Contoh: Tepung Terigu" />
+          </div>
+          <div class="form-group">
+            <label>Satuan</label>
+            <input type="text" id="ingUnit" required placeholder="gram / ml / pcs / liter" />
+          </div>
+          <div class="form-group">
+            <label>Stok Awal</label>
+            <input type="number" id="ingStock" min="0" step="0.01" value="0" />
+          </div>
+          <div class="form-group">
+            <label>Min. Stok <span style="font-size:.75rem;color:var(--text-muted);font-weight:400">(peringatan)</span></label>
+            <input type="number" id="ingMinStock" min="0" step="0.01" value="0" />
+          </div>
+          <div class="form-group">
+            <label>Harga per Satuan <span style="font-size:.75rem;color:var(--text-muted);font-weight:400">(opsional)</span></label>
+            <input type="number" id="ingCost" min="0" step="1" placeholder="0" />
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" id="ingredientModalCancel">Batal</button>
+          <button type="submit" class="btn btn-primary" id="ingredientModalSave">Simpan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ══ Modal: Adjust Stok Bahan ══ -->
+  <div class="modal-overlay hidden" id="adjustStockModal">
+    <div class="modal bo-modal" style="max-width:400px">
+      <h3>Sesuaikan Stok</h3>
+      <p id="adjustStockDesc" style="color:var(--text-muted);font-size:.9rem;margin-bottom:1rem"></p>
+      <div class="bo-form-grid" style="grid-template-columns:1fr">
+        <div class="form-group">
+          <label>Stok Saat Ini</label>
+          <input type="text" id="adjustCurrentStock" disabled style="background:#f1f5f9" />
+        </div>
+        <div class="form-group">
+          <label>Perubahan <span style="font-size:.75rem;color:var(--text-muted);font-weight:400">(+ tambah / - kurangi)</span></label>
+          <input type="number" id="adjustDelta" step="0.01" placeholder="Contoh: 100 atau -50" />
+        </div>
+        <div class="form-group">
+          <label>Stok Baru (preview)</label>
+          <input type="text" id="adjustNewStock" disabled style="background:#f1f5f9;font-weight:700" />
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary" id="adjustStockCancel">Batal</button>
+        <button type="button" class="btn btn-primary" id="adjustStockConfirm">Simpan</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ Modal: Resep ══ -->
+  <div class="modal-overlay hidden" id="recipeModal">
+    <div class="modal bo-modal recipe-modal">
+      <h3 id="recipeModalTitle">Buat Resep</h3>
+      <form id="recipeForm">
+        <div class="bo-form-grid">
+          <div class="form-group bo-full">
+            <label>Menu</label>
+            <select id="recipeMenuId" required>
+              <option value="">-- Pilih Menu --</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Hasil per Resep <span style="font-size:.75rem;color:var(--text-muted);font-weight:400">(porsi)</span></label>
+            <input type="number" id="recipeYield" min="1" value="1" required />
+          </div>
+          <div class="form-group bo-full">
+            <label>Catatan Resep</label>
+            <input type="text" id="recipeNotes" placeholder="Opsional" />
+          </div>
+        </div>
+
+        <!-- Daftar bahan dalam resep -->
+        <div class="recipe-ingredients-section">
+          <div class="recipe-ing-header">
+            <strong>Bahan-bahan</strong>
+            <button type="button" class="btn btn-outline btn-sm" id="addIngRowBtn">+ Tambah Bahan</button>
+          </div>
+          <div id="recipeIngRows"></div>
+        </div>
+
+        <!-- Preview stok estimasi -->
+        <div class="recipe-stock-preview" id="recipeStockPreview" style="display:none">
+          <span class="preview-label">Estimasi stok menu:</span>
+          <span class="preview-value" id="previewStockValue">—</span>
+          <span class="preview-unit">porsi</span>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" id="recipeModalCancel">Batal</button>
+          <button type="submit" class="btn btn-primary" id="recipeModalSave">Simpan Resep</button>
         </div>
       </form>
     </div>

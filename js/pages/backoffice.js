@@ -22,24 +22,36 @@ function switchTab(tab) {
   activeTab = tab;
   document.querySelectorAll('.bo-nav-item').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
   document.querySelectorAll('.bo-tab').forEach(s => s.classList.toggle('active', s.id === `tab-${tab}`));
-  const titles = { items: 'Item', categories: 'Kategori', stock: 'Manajemen Stok', void: 'Void', users: 'Users', settings: 'Pengaturan' };
+  const titles = {
+    items: 'Item', categories: 'Kategori', stock: 'Manajemen Stok',
+    ingredients: 'Bahan Baku', recipes: 'Resep',
+    void: 'Void', users: 'Users', settings: 'Pengaturan',
+  };
   document.getElementById('boPageTitle').textContent = titles[tab];
   const addBtn = document.getElementById('boAddBtn');
   addBtn.style.display  = ['stock', 'void', 'settings'].includes(tab) ? 'none' : '';
-  addBtn.textContent    = tab === 'users' ? '+ Tambah User' : tab === 'categories' ? '+ Tambah Kategori' : '+ Tambah Item';
-  
-  if (tab === 'items')      loadMenu();
-  if (tab === 'categories') loadCategories();
-  if (tab === 'stock')      loadStock();
-  if (tab === 'void')       loadVoid();
-  if (tab === 'users')      loadUsers();
-  if (tab === 'settings')   loadSettings();
+  addBtn.textContent    = tab === 'users' ? '+ Tambah User'
+    : tab === 'categories' ? '+ Tambah Kategori'
+    : tab === 'ingredients' ? '+ Tambah Bahan'
+    : tab === 'recipes' ? '+ Buat Resep'
+    : '+ Tambah Item';
+
+  if (tab === 'items')       loadMenu();
+  if (tab === 'categories')  loadCategories();
+  if (tab === 'stock')       loadStock();
+  if (tab === 'ingredients') loadIngredients();
+  if (tab === 'recipes')     loadRecipes();
+  if (tab === 'void')        loadVoid();
+  if (tab === 'users')       loadUsers();
+  if (tab === 'settings')    loadSettings();
 }
 
 document.getElementById('boAddBtn').addEventListener('click', () => {
-  if (activeTab === 'items')      openMenuModal(null);
-  if (activeTab === 'categories') openCategoryModal(null);
-  if (activeTab === 'users')      openUserModal(null);
+  if (activeTab === 'items')       openMenuModal(null);
+  if (activeTab === 'categories')  openCategoryModal(null);
+  if (activeTab === 'users')       openUserModal(null);
+  if (activeTab === 'ingredients') openIngredientModal(null);
+  if (activeTab === 'recipes')     openRecipeModal(null);
 });
 
 // ══ ITEMS (MENU) ══════════════════════════════════════════════
@@ -526,6 +538,393 @@ document.getElementById('settingsForm').addEventListener('submit', async (e) => 
     saveBtn.textContent = 'Simpan Pengaturan';
   }
 });
+
+// ══ INGREDIENTS ═══════════════════════════════════════════════
+let allIngredients = [];
+
+async function loadIngredients() {
+  allIngredients = await API.getIngredients();
+  renderIngredientsTable(allIngredients);
+}
+
+function renderIngredientsTable(items) {
+  const tbody = document.getElementById('ingredientsTbody');
+  if (!items.length) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:2rem">Belum ada bahan baku</td></tr>';
+    return;
+  }
+  tbody.innerHTML = items.map(item => {
+    const isLow = parseFloat(item.stock) <= parseFloat(item.min_stock) && parseFloat(item.min_stock) > 0;
+    const stockClass = !item.active ? 'stock-low' : isLow ? 'stock-low' : parseFloat(item.stock) <= parseFloat(item.min_stock) * 2 ? 'stock-mid' : 'stock-ok';
+    return `
+    <tr>
+      <td><strong>${item.name}</strong></td>
+      <td><span class="bo-badge" style="background:#f1f5f9;color:#475569">${item.unit}</span></td>
+      <td>
+        <span class="item-stock ${stockClass}">${parseFloat(item.stock).toLocaleString('id-ID')} ${item.unit}</span>
+        ${isLow ? '<span style="color:var(--danger);font-size:.75rem;margin-left:.3rem">⚠ Rendah</span>' : ''}
+      </td>
+      <td style="color:var(--text-muted);font-size:.88rem">${parseFloat(item.min_stock).toLocaleString('id-ID')} ${item.unit}</td>
+      <td style="font-size:.88rem">${item.cost_per_unit ? 'Rp ' + parseInt(item.cost_per_unit).toLocaleString('id-ID') : '—'}</td>
+      <td><span class="bo-badge ${item.active ? 'bo-badge-active' : 'bo-badge-inactive'}">${item.active ? 'Aktif' : 'Nonaktif'}</span></td>
+      <td><div class="bo-actions">
+        <button class="btn btn-outline btn-sm" onclick="openAdjustStockModal(${item.id})">Sesuaikan Stok</button>
+        <button class="btn btn-outline btn-sm" onclick="openIngredientModal(${item.id})">Edit</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteIngredient(${item.id}, '${item.name.replace(/'/g, "\\'")}')">🗑</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+
+// ── Modal Bahan Baku ──────────────────────────────────────────
+let editingIngredientId = null;
+
+function openIngredientModal(id) {
+  editingIngredientId = id;
+  document.getElementById('ingredientModalTitle').textContent = id ? 'Edit Bahan Baku' : 'Tambah Bahan Baku';
+  document.getElementById('ingredientForm').reset();
+  if (id) {
+    const item = allIngredients.find(i => i.id === id);
+    if (item) {
+      document.getElementById('ingName').value     = item.name;
+      document.getElementById('ingUnit').value     = item.unit;
+      document.getElementById('ingStock').value    = item.stock;
+      document.getElementById('ingMinStock').value = item.min_stock;
+      document.getElementById('ingCost').value     = item.cost_per_unit || '';
+    }
+    // Stok tidak bisa diedit langsung saat edit — pakai Sesuaikan Stok
+    document.getElementById('ingStock').disabled = true;
+    document.getElementById('ingStock').style.background = '#f1f5f9';
+  } else {
+    document.getElementById('ingStock').disabled = false;
+    document.getElementById('ingStock').style.background = '';
+  }
+  document.getElementById('ingredientModal').classList.remove('hidden');
+}
+
+document.getElementById('ingredientModalCancel').addEventListener('click', () =>
+  document.getElementById('ingredientModal').classList.add('hidden'));
+
+document.getElementById('ingredientForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const data = {
+    name:          document.getElementById('ingName').value.trim(),
+    unit:          document.getElementById('ingUnit').value.trim(),
+    min_stock:     parseFloat(document.getElementById('ingMinStock').value) || 0,
+    cost_per_unit: document.getElementById('ingCost').value ? parseFloat(document.getElementById('ingCost').value) : null,
+  };
+  if (!editingIngredientId) {
+    data.stock = parseFloat(document.getElementById('ingStock').value) || 0;
+  }
+  const btn = document.getElementById('ingredientModalSave');
+  btn.disabled = true; btn.textContent = 'Menyimpan...';
+  try {
+    if (editingIngredientId) await API.updateIngredient(editingIngredientId, data);
+    else await API.addIngredient(data);
+    document.getElementById('ingredientModal').classList.add('hidden');
+    await loadIngredients();
+  } catch (err) { Modal.alert('', 'Gagal', err.message); }
+  finally { btn.disabled = false; btn.textContent = 'Simpan'; }
+});
+
+// ── Modal Sesuaikan Stok ──────────────────────────────────────
+let adjustingIngredientId = null;
+let adjustingIngredientStock = 0;
+
+function openAdjustStockModal(id) {
+  adjustingIngredientId = id;
+  const item = allIngredients.find(i => i.id === id);
+  if (!item) return;
+  adjustingIngredientStock = parseFloat(item.stock);
+  document.getElementById('adjustStockDesc').textContent = `Bahan: ${item.name} (${item.unit})`;
+  document.getElementById('adjustCurrentStock').value = `${adjustingIngredientStock} ${item.unit}`;
+  document.getElementById('adjustDelta').value = '';
+  document.getElementById('adjustNewStock').value = `${adjustingIngredientStock} ${item.unit}`;
+  document.getElementById('adjustStockModal').classList.remove('hidden');
+}
+
+document.getElementById('adjustDelta').addEventListener('input', function () {
+  const delta = parseFloat(this.value) || 0;
+  const newStock = Math.max(0, adjustingIngredientStock + delta);
+  const item = allIngredients.find(i => i.id === adjustingIngredientId);
+  document.getElementById('adjustNewStock').value = `${newStock.toLocaleString('id-ID')} ${item?.unit || ''}`;
+  document.getElementById('adjustNewStock').style.color = delta >= 0 ? 'var(--success)' : 'var(--danger)';
+});
+
+document.getElementById('adjustStockCancel').addEventListener('click', () =>
+  document.getElementById('adjustStockModal').classList.add('hidden'));
+
+document.getElementById('adjustStockConfirm').addEventListener('click', async () => {
+  const delta = parseFloat(document.getElementById('adjustDelta').value);
+  if (isNaN(delta)) { Modal.alert('', 'Input Tidak Valid', 'Masukkan angka perubahan stok.'); return; }
+  const btn = document.getElementById('adjustStockConfirm');
+  btn.disabled = true; btn.textContent = 'Menyimpan...';
+  try {
+    await API.adjustIngredientStock(adjustingIngredientId, delta);
+    document.getElementById('adjustStockModal').classList.add('hidden');
+    await loadIngredients();
+    // Refresh resep jika sedang di tab resep
+    if (activeTab === 'recipes') await loadRecipes();
+    Modal.alert('', 'Berhasil', 'Stok bahan berhasil diperbarui. Stok menu terkait sudah disinkronkan.');
+  } catch (err) { Modal.alert('', 'Gagal', err.message); }
+  finally { btn.disabled = false; btn.textContent = 'Simpan'; }
+});
+
+async function deleteIngredient(id, name) {
+  Modal.confirm('', 'Hapus Bahan', `Hapus bahan "${name}"?`, async () => {
+    try {
+      await API.deleteIngredient(id);
+      await loadIngredients();
+    } catch (err) { Modal.alert('', 'Gagal', err.message); }
+  }, 'Ya, Hapus', 'Batal', 'btn-danger');
+}
+
+// ══ RECIPES ═══════════════════════════════════════════════════
+let allRecipes = [];
+let allMenuForRecipe = [];
+
+async function loadRecipes() {
+  [allRecipes, allMenuForRecipe, allIngredients] = await Promise.all([
+    API.getRecipes(),
+    API.getMenu(),
+    API.getIngredients(),
+  ]);
+  renderRecipeCards(allRecipes);
+}
+
+function renderRecipeCards(recipes) {
+  const container = document.getElementById('recipeCards');
+  if (!recipes.length) {
+    container.innerHTML = `
+      <div style="text-align:center;padding:3rem;color:var(--text-muted)">
+        <div style="font-size:2.5rem;margin-bottom:.5rem">📋</div>
+        <div>Belum ada resep. Klik "+ Buat Resep" untuk mulai.</div>
+      </div>`;
+    return;
+  }
+  container.innerHTML = recipes.map(r => {
+    const stockColor = r.estimated_stock === 0 ? 'var(--danger)'
+      : r.estimated_stock <= 5 ? '#d97706' : 'var(--success)';
+    const ingList = r.ingredients.map(i =>
+      `<div class="recipe-ing-row">
+        <span class="recipe-ing-name">${i.ingredient_name}</span>
+        <span class="recipe-ing-qty">${parseFloat(i.quantity).toLocaleString('id-ID')} ${i.unit}</span>
+        <span class="recipe-ing-stock" style="color:${parseFloat(i.ingredient_stock) < parseFloat(i.quantity) ? 'var(--danger)' : 'var(--text-muted)'}">
+          (stok: ${parseFloat(i.ingredient_stock).toLocaleString('id-ID')} ${i.ingredient_unit})
+        </span>
+      </div>`
+    ).join('');
+    return `
+      <div class="recipe-card">
+        <div class="recipe-card-header">
+          <div>
+            <div class="recipe-menu-name">${r.menu_name}</div>
+            <div class="recipe-yield">Hasil: ${r.yield_count} porsi per resep</div>
+          </div>
+          <div class="recipe-stock-badge" style="background:${stockColor}20;color:${stockColor};border:1.5px solid ${stockColor}40">
+            <span style="font-size:1.1rem;font-weight:800">${r.estimated_stock}</span>
+            <span style="font-size:.7rem">porsi tersedia</span>
+          </div>
+        </div>
+        <div class="recipe-ing-list">
+          ${ingList || '<div style="color:var(--text-muted);font-size:.85rem;padding:.5rem 0">Belum ada bahan</div>'}
+        </div>
+        ${r.notes ? `<div class="recipe-notes">📝 ${r.notes}</div>` : ''}
+        <div class="recipe-card-actions">
+          <button class="btn btn-outline btn-sm" onclick="openRecipeModal(${r.id})">Edit Resep</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteRecipe(${r.id}, '${r.menu_name.replace(/'/g, "\\'")}')">🗑</button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+document.getElementById('recipeSearch').addEventListener('input', function () {
+  const q = this.value.toLowerCase();
+  renderRecipeCards(allRecipes.filter(r => r.menu_name.toLowerCase().includes(q)));
+});
+
+document.getElementById('syncAllBtn').addEventListener('click', async () => {
+  const btn = document.getElementById('syncAllBtn');
+  btn.disabled = true; btn.textContent = 'Menyinkronkan...';
+  try {
+    const result = await API.syncAllRecipes();
+    await loadRecipes();
+    Modal.alert('', 'Sync Selesai', `${result.synced} resep berhasil disinkronkan.`);
+  } catch (err) { Modal.alert('', 'Gagal', err.message); }
+  finally { btn.disabled = false; btn.textContent = '↻ Sync Semua Stok'; }
+});
+
+// ── Modal Resep ───────────────────────────────────────────────
+let editingRecipeId = null;
+let recipeIngRows   = [];   // [{ ingredientId, quantity, unit }]
+
+function openRecipeModal(id) {
+  editingRecipeId = id;
+  document.getElementById('recipeModalTitle').textContent = id ? 'Edit Resep' : 'Buat Resep';
+  document.getElementById('recipeForm').reset();
+  document.getElementById('recipeStockPreview').style.display = 'none';
+
+  // Populate menu dropdown — hanya menu yang belum punya resep (kecuali yang sedang diedit)
+  const menuSel = document.getElementById('recipeMenuId');
+  const usedMenuIds = allRecipes.map(r => r.menu_id);
+  menuSel.innerHTML = '<option value="">-- Pilih Menu --</option>';
+  allMenuForRecipe.forEach(m => {
+    const alreadyUsed = usedMenuIds.includes(m.id) && (!id || allRecipes.find(r => r.id === id)?.menu_id !== m.id);
+    if (!alreadyUsed) {
+      menuSel.innerHTML += `<option value="${m.id}">${m.name}</option>`;
+    }
+  });
+
+  recipeIngRows = [];
+  if (id) {
+    const recipe = allRecipes.find(r => r.id === id);
+    if (recipe) {
+      menuSel.innerHTML = `<option value="${recipe.menu_id}">${recipe.menu_name}</option>`;
+      menuSel.disabled = true;
+      document.getElementById('recipeYield').value = recipe.yield_count;
+      document.getElementById('recipeNotes').value = recipe.notes || '';
+      recipeIngRows = recipe.ingredients.map(i => ({
+        ingredientId: i.ingredient_id,
+        quantity: i.quantity,
+        unit: i.unit,
+      }));
+    }
+  } else {
+    menuSel.disabled = false;
+  }
+
+  renderIngRows();
+  document.getElementById('recipeModal').classList.remove('hidden');
+}
+
+function renderIngRows() {
+  const container = document.getElementById('recipeIngRows');
+  if (!recipeIngRows.length) {
+    container.innerHTML = '<div style="color:var(--text-muted);font-size:.85rem;padding:.5rem 0">Belum ada bahan. Klik "+ Tambah Bahan".</div>';
+    updateStockPreview();
+    return;
+  }
+  container.innerHTML = recipeIngRows.map((row, idx) => `
+    <div class="recipe-ing-form-row" data-idx="${idx}">
+      <select class="ing-select" onchange="updateIngRow(${idx}, 'ingredientId', this.value)">
+        <option value="">-- Pilih Bahan --</option>
+        ${allIngredients.map(i =>
+          `<option value="${i.id}" ${i.id == row.ingredientId ? 'selected' : ''}>${i.name} (${i.unit})</option>`
+        ).join('')}
+      </select>
+      <input type="number" class="ing-qty-input" min="0.01" step="0.01"
+        value="${row.quantity || ''}" placeholder="Jumlah"
+        onchange="updateIngRow(${idx}, 'quantity', this.value)"
+        oninput="updateIngRow(${idx}, 'quantity', this.value)" />
+      <input type="text" class="ing-unit-input" value="${row.unit || ''}" placeholder="Satuan"
+        onchange="updateIngRow(${idx}, 'unit', this.value)"
+        oninput="updateIngRow(${idx}, 'unit', this.value)" />
+      <button type="button" class="btn btn-danger btn-sm" onclick="removeIngRow(${idx})">✕</button>
+    </div>
+  `).join('');
+  updateStockPreview();
+}
+
+function updateIngRow(idx, field, value) {
+  if (field === 'ingredientId') {
+    recipeIngRows[idx].ingredientId = parseInt(value) || null;
+    // Auto-fill unit dari ingredient
+    const ing = allIngredients.find(i => i.id === parseInt(value));
+    if (ing) {
+      recipeIngRows[idx].unit = ing.unit;
+      // Update unit input di DOM
+      const row = document.querySelectorAll('.recipe-ing-form-row')[idx];
+      if (row) row.querySelector('.ing-unit-input').value = ing.unit;
+    }
+  } else if (field === 'quantity') {
+    recipeIngRows[idx].quantity = parseFloat(value) || 0;
+  } else if (field === 'unit') {
+    recipeIngRows[idx].unit = value;
+  }
+  updateStockPreview();
+}
+
+function removeIngRow(idx) {
+  recipeIngRows.splice(idx, 1);
+  renderIngRows();
+}
+
+document.getElementById('addIngRowBtn').addEventListener('click', () => {
+  recipeIngRows.push({ ingredientId: null, quantity: 0, unit: '' });
+  renderIngRows();
+});
+
+function updateStockPreview() {
+  const preview = document.getElementById('recipeStockPreview');
+  const yieldCount = parseInt(document.getElementById('recipeYield').value) || 1;
+  const validRows = recipeIngRows.filter(r => r.ingredientId && r.quantity > 0);
+  if (!validRows.length) { preview.style.display = 'none'; return; }
+
+  let minPortions = Infinity;
+  for (const row of validRows) {
+    const ing = allIngredients.find(i => i.id === row.ingredientId);
+    if (!ing) continue;
+    const portions = Math.floor(parseFloat(ing.stock) / row.quantity);
+    if (portions < minPortions) minPortions = portions;
+  }
+  const estimated = minPortions === Infinity ? 0 : minPortions * yieldCount;
+  document.getElementById('previewStockValue').textContent = estimated;
+  document.getElementById('previewStockValue').style.color =
+    estimated === 0 ? 'var(--danger)' : estimated <= 5 ? '#d97706' : 'var(--success)';
+  preview.style.display = 'flex';
+}
+
+document.getElementById('recipeYield').addEventListener('input', updateStockPreview);
+
+document.getElementById('recipeModalCancel').addEventListener('click', () => {
+  document.getElementById('recipeModal').classList.add('hidden');
+  document.getElementById('recipeMenuId').disabled = false;
+});
+
+document.getElementById('recipeForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const menuId     = parseInt(document.getElementById('recipeMenuId').value);
+  const yieldCount = parseInt(document.getElementById('recipeYield').value) || 1;
+  const notes      = document.getElementById('recipeNotes').value.trim();
+
+  if (!menuId) { Modal.alert('', 'Pilih Menu', 'Pilih menu untuk resep ini.'); return; }
+
+  const validIngredients = recipeIngRows
+    .filter(r => r.ingredientId && r.quantity > 0 && r.unit)
+    .map(r => ({ ingredientId: r.ingredientId, quantity: r.quantity, unit: r.unit }));
+
+  const btn = document.getElementById('recipeModalSave');
+  btn.disabled = true; btn.textContent = 'Menyimpan...';
+  try {
+    if (editingRecipeId) {
+      await API.updateRecipe(editingRecipeId, { yieldCount, notes, ingredients: validIngredients });
+    } else {
+      await API.createRecipe({ menuId, yieldCount, notes, ingredients: validIngredients });
+    }
+    document.getElementById('recipeModal').classList.add('hidden');
+    document.getElementById('recipeMenuId').disabled = false;
+    await loadRecipes();
+  } catch (err) { Modal.alert('', 'Gagal', err.message); }
+  finally { btn.disabled = false; btn.textContent = 'Simpan Resep'; }
+});
+
+async function deleteRecipe(id, menuName) {
+  Modal.confirm('', 'Hapus Resep', `Hapus resep untuk "${menuName}"?`, async () => {
+    try {
+      await API.deleteRecipe(id);
+      await loadRecipes();
+    } catch (err) { Modal.alert('', 'Gagal', err.message); }
+  }, 'Ya, Hapus', 'Batal', 'btn-danger');
+}
+
+// Expose ke global scope untuk onclick di HTML
+window.openIngredientModal    = openIngredientModal;
+window.openAdjustStockModal   = openAdjustStockModal;
+window.deleteIngredient       = deleteIngredient;
+window.openRecipeModal        = openRecipeModal;
+window.deleteRecipe           = deleteRecipe;
+window.updateIngRow           = updateIngRow;
+window.removeIngRow           = removeIngRow;
 
 // ── Init ──────────────────────────────────────────────────────
 switchTab('items');
