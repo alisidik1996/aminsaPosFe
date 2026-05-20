@@ -63,8 +63,10 @@ async function openTableModal(table) {
     confirmBtn.className   = 'btn btn-primary';
   } else {
     const order = await API.getActiveOrderByTable(table.id).catch(() => null);
-    if (order && order.status === 'open') {
-      document.getElementById('modalDesc').textContent = 'Meja terisi. Lanjutkan pesanan?';
+    if (order && (order.status === 'open' || order.status === 'sent')) {
+      document.getElementById('modalDesc').textContent = order.status === 'sent'
+        ? 'Pesanan sudah dikirim ke dapur/bar. Tambah pesanan atau lihat bill?'
+        : 'Meja terisi. Lanjutkan pesanan?';
       confirmBtn.textContent = 'Lanjut Pesanan';
       confirmBtn.className   = 'btn btn-primary';
       switchBtn.classList.remove('hidden');
@@ -183,10 +185,17 @@ document.getElementById('modalConfirm').addEventListener('click', async () => {
     sessionStorage.setItem('pos_current_table', selectedTableId);
     sessionStorage.setItem('pos_current_order', newOrder.id);
   } else {
-    let openOrder = await API.getOrderByTable(selectedTableId).catch(() => null);
-    if (!openOrder) openOrder = await API.createOrder({ tableId: selectedTableId, kasirId: session.id, kasirName: session.name });
-    sessionStorage.setItem('pos_current_table', selectedTableId);
-    sessionStorage.setItem('pos_current_order', openOrder.id);
+    // Gunakan getActiveOrderByTable agar order berstatus 'sent' juga terdeteksi
+    let activeOrder = await API.getActiveOrderByTable(selectedTableId).catch(() => null);
+    if (!activeOrder || activeOrder.status === 'sent') {
+      // Buat order baru jika tidak ada order open, atau order sebelumnya sudah sent
+      const newOrder = await API.createOrder({ tableId: selectedTableId, kasirId: session.id, kasirName: session.name });
+      sessionStorage.setItem('pos_current_table', selectedTableId);
+      sessionStorage.setItem('pos_current_order', newOrder.id);
+    } else {
+      sessionStorage.setItem('pos_current_table', selectedTableId);
+      sessionStorage.setItem('pos_current_order', activeOrder.id);
+    }
   }
   window.location.href = 'order.html';
 });

@@ -45,8 +45,10 @@ document.getElementById('backBtn').addEventListener('click', () => {
 });
 
 document.getElementById('addOrderBtn').addEventListener('click', async () => {
-  let order = await API.getOrderByTable(tableId).catch(() => null);
+  // Gunakan getActiveOrderByTable agar order berstatus 'sent' juga terdeteksi
+  let order = await API.getActiveOrderByTable(tableId).catch(() => null);
   if (!order || order.status !== 'open') {
+    // Buat order baru jika tidak ada order open
     order = await API.createOrder({ tableId, kasirId: session.id, kasirName: session.name });
   }
   sessionStorage.setItem('pos_current_order', order.id);
@@ -145,7 +147,11 @@ document.getElementById('payBtn').addEventListener('click', async () => {
     paymentMethod: method,
     paymentDetail,
   });
-  await API.updateOrder(bill.orderId, { status: 'closed' });
+  // Tutup semua order yang terkait dengan bill ini
+  const orderIds = bill.orderIds?.length ? bill.orderIds : [bill.orderId];
+  for (const oid of orderIds) {
+    await API.updateOrder(oid, { status: 'closed' }).catch(() => {});
+  }
   await API.updateTable(tableId, { status: 'available', openedAt: null, kasirId: null });
   renderBill();
 

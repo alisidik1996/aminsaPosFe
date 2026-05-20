@@ -52,6 +52,7 @@ const API = {
       ? `?category=${encodeURIComponent(category)}` : '';
     return http('GET', `/menu${q}`);
   },
+  getAllMenu:         ()         => http('GET', '/menu/all'),   // termasuk nonaktif (backoffice)
   getMenuCategories: () => http('GET', '/menu/categories'),
   updateMenuStock:   (id, stock) => http('PATCH', `/menu/${id}/stock`, { stock }),
   updateMenu:        (id, data)  => http('PUT',   `/menu/${id}`, data),

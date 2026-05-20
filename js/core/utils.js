@@ -37,7 +37,7 @@ function getElapsed(iso) {
  */
 function requireAuth() {
   const session = JSON.parse(sessionStorage.getItem('pos_session') || 'null');
-  if (!session) { window.location.href = '/index.html'; return null; }
+  if (!session) { window.location.href = 'index.html'; return null; }
   return session;
 }
 
@@ -48,7 +48,7 @@ function requireAuth() {
 function requireAdmin() {
   const session = requireAuth();
   if (session && session.role !== 'admin') {
-    window.location.href = '/dashboard.html';
+    window.location.href = 'dashboard.html';
     return null;
   }
   return session;

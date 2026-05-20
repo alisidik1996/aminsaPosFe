@@ -59,7 +59,7 @@ let allMenuItems = [];
 let allCategories = [];
 
 async function loadMenu() {
-  allMenuItems = await API.getMenu();
+  allMenuItems = await API.getAllMenu();   // termasuk item nonaktif
   allCategories = await API.getCategories();
   
   const cats = [...new Set(allMenuItems.map(m => m.category))];
@@ -258,7 +258,7 @@ async function deleteCategory(id, name) {
 // ══ STOCK ═════════════════════════════════════════════════════
 let allStockItems = [];
 async function loadStock() {
-  allStockItems = await API.getMenu();
+  allStockItems = await API.getAllMenu();   // termasuk item nonaktif
   renderStockTable(allStockItems);
 }
 
@@ -686,7 +686,7 @@ let allMenuForRecipe = [];
 async function loadRecipes() {
   [allRecipes, allMenuForRecipe, allIngredients] = await Promise.all([
     API.getRecipes(),
-    API.getMenu(),
+    API.getAllMenu(),   // termasuk item nonaktif agar resep bisa dibuat untuk semua menu
     API.getIngredients(),
   ]);
   renderRecipeCards(allRecipes);
