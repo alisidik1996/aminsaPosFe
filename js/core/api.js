@@ -13,7 +13,7 @@ const BACKEND_URL = (() => {
   return 'https://aminsa-pos-be.vercel.app/api';
 })();
 
-async function http(method, path, body) {
+async function http(method, path, body, nullable = false) {
   const opts = {
     method,
     headers: { 'Content-Type': 'application/json' },
@@ -33,6 +33,9 @@ async function http(method, path, body) {
     try { data = JSON.parse(text); }
     catch { throw new Error(`Server error (${res.status}): response bukan JSON.`); }
   }
+
+  // Jika nullable=true dan status 404, kembalikan null tanpa throw (data memang tidak ada)
+  if (res.status === 404 && nullable) return null;
 
   if (!res.ok) throw new Error((data && data.error) || `HTTP ${res.status}`);
   return data;
@@ -72,15 +75,15 @@ const API = {
   switchTable: (fromId, toId) => http('POST', '/tables/switch', { fromId, toId }),
 
   // ── ORDERS ──────────────────────────────────────────────
-  getOrderByTable:       (tableId) => http('GET',   `/orders/table/${tableId}`),
-  getActiveOrderByTable: (tableId) => http('GET',   `/orders/table/${tableId}/active`),
+  getOrderByTable:       (tableId) => http('GET',   `/orders/table/${tableId}`,        undefined, true),
+  getActiveOrderByTable: (tableId) => http('GET',   `/orders/table/${tableId}/active`, undefined, true),
   getOrder:              (id)      => http('GET',   `/orders/${id}`),
   createOrder:           (data)    => http('POST',  '/orders', data),
   updateOrder:           (id, data)=> http('PATCH', `/orders/${id}`, data),
 
   // ── BILLS ───────────────────────────────────────────────
-  getBillByOrder:  (orderId) => http('GET',  `/bills/order/${orderId}`),
-  getBillByTable:  (tableId) => http('GET',  `/bills/table/${tableId}`),
+  getBillByOrder:  (orderId) => http('GET',  `/bills/order/${orderId}`,   undefined, true),
+  getBillByTable:  (tableId) => http('GET',  `/bills/table/${tableId}`,   undefined, true),
   getBill:         (id)      => http('GET',  `/bills/${id}`),
   createBill:      (data)    => http('POST', '/bills', data),
   updateBill:      (id, data)=> http('PATCH',`/bills/${id}`, data),
