@@ -138,40 +138,53 @@ document.getElementById('sendConfirm').addEventListener('click', () => {
 });
 
 async function sendOrder() {
-  const note  = document.getElementById('orderNote').value.trim();
-  const items = Cart.getItems();
+  const note     = document.getElementById('orderNote').value.trim();
+  const items    = Cart.getItems();
+  const sendBtn  = document.getElementById('sendOrderBtn');
+  const confirmBtn = document.getElementById('sendConfirm');
 
-  await API.updateOrder(orderId, { items, note, status: 'sent' });
+  // Disable tombol untuk cegah double-submit
+  sendBtn.disabled    = true;
+  confirmBtn.disabled = true;
+  sendBtn.textContent = 'Mengirim...';
 
-  // Kurangi stok — ambil stok terkini dari server untuk menghindari race condition
-  for (const item of items) {
-    try {
-      const freshMenu = await API.getMenu().then(list => list.find(m => m.id === item.id));
-      if (freshMenu) {
-        await API.updateMenuStock(item.id, Math.max(0, freshMenu.stock - item.qty));
+  try {
+    await API.updateOrder(orderId, { items, note, status: 'sent' });
+
+    // Kurangi stok — ambil stok terkini dari server untuk menghindari race condition
+    for (const item of items) {
+      try {
+        const freshMenu = await API.getMenu().then(list => list.find(m => m.id === item.id));
+        if (freshMenu) {
+          await API.updateMenuStock(item.id, Math.max(0, freshMenu.stock - item.qty));
+        }
+      } catch (e) {
+        console.warn('Gagal update stok untuk item', item.id, e);
       }
-    } catch (e) {
-      // Jika gagal update stok, lanjutkan saja (tidak blokir proses order)
-      console.warn('Gagal update stok untuk item', item.id, e);
     }
-  }
 
-  const appendToBillId = parseInt(sessionStorage.getItem('pos_append_to_bill'));
-  let bill;
-  if (appendToBillId) {
-    bill = await API.addOrderToBill(appendToBillId, orderId);
-    sessionStorage.removeItem('pos_append_to_bill');
-  } else {
-    bill = await API.createBill({
-      orderId, tableId, tableName: table.name,
-      items, note, kasirId: session.id, kasirName: session.name,
+    const appendToBillId = parseInt(sessionStorage.getItem('pos_append_to_bill'));
+    let bill;
+    if (appendToBillId) {
+      bill = await API.addOrderToBill(appendToBillId, orderId);
+      sessionStorage.removeItem('pos_append_to_bill');
+    } else {
+      bill = await API.createBill({
+        orderId, tableId, tableName: table.name,
+        items, note, kasirId: session.id, kasirName: session.name,
+      });
+    }
+    sessionStorage.setItem('pos_current_bill', bill.id);
+
+    StationNotif.show(items, table.name, session.name, note, () => {
+      window.location.href = 'bill.html';
     });
+  } catch (err) {
+    Modal.alert('', 'Gagal Mengirim', err.message || 'Terjadi kesalahan saat mengirim pesanan.');
+    sendBtn.disabled    = false;
+    confirmBtn.disabled = false;
+    sendBtn.textContent = 'Kirim Pesanan';
   }
-  sessionStorage.setItem('pos_current_bill', bill.id);
-
-  StationNotif.show(items, table.name, session.name, note, () => {
-    window.location.href = 'bill.html';
-  });
 }
 
 init();

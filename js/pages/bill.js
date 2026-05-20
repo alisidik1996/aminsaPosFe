@@ -82,6 +82,9 @@ function renderBill() {
   document.getElementById('grandTotal').textContent = formatRp(bill.total);
   document.getElementById('billNote').textContent   = bill.note ? `${bill.note}` : '';
 
+  // Render tombol quick cash
+  renderQuickCash();
+
   if (bill.status === 'paid') {
     document.getElementById('payBtn').disabled      = true;
     document.getElementById('payBtn').textContent   = 'Sudah Dibayar';
@@ -107,6 +110,31 @@ document.getElementById('cashInput').addEventListener('input', () => {
   el.style.color = change >= 0 ? 'var(--success)' : 'var(--danger)';
 });
 
+// ── Quick cash buttons ────────────────────────────────────────
+function renderQuickCash() {
+  const total = bill.total;
+  // Nominal bulat di atas total
+  const bases = [5000, 10000, 20000, 50000, 100000];
+  const suggestions = [];
+  // Tambah nominal pas
+  suggestions.push(total);
+  // Tambah nominal bulat terdekat
+  for (const base of bases) {
+    const rounded = Math.ceil(total / base) * base;
+    if (!suggestions.includes(rounded) && suggestions.length < 4) {
+      suggestions.push(rounded);
+    }
+  }
+  suggestions.sort((a, b) => a - b);
+
+  const container = document.getElementById('quickCash');
+  container.innerHTML = suggestions.slice(0, 4).map(amount => `
+    <button type="button" class="btn btn-outline btn-sm quick-cash-btn"
+      onclick="document.getElementById('cashInput').value=${amount};document.getElementById('cashInput').dispatchEvent(new Event('input'))">
+      ${formatRp(amount)}
+    </button>`).join('');
+}
+
 // Hanya izinkan angka di field 4 digit terakhir kartu
 document.getElementById('cardLast4').addEventListener('input', function () {
   this.value = this.value.replace(/\D/g, '').substring(0, 4);
@@ -114,6 +142,7 @@ document.getElementById('cardLast4').addEventListener('input', function () {
 
 // ── Proses bayar ──────────────────────────────────────────────
 document.getElementById('payBtn').addEventListener('click', async () => {
+  const payBtn = document.getElementById('payBtn');
   const method = document.querySelector('input[name="payMethod"]:checked').value;
   const errEl  = document.getElementById('payError');
   errEl.classList.add('hidden');
@@ -141,34 +170,45 @@ document.getElementById('payBtn').addEventListener('click', async () => {
     paymentDetail = { bankName, cardLast4 };
   }
 
-  bill = await API.updateBill(billId, {
-    status: 'paid',
-    paidAt: new Date().toISOString(),
-    paymentMethod: method,
-    paymentDetail,
-  });
-  // Tutup semua order yang terkait dengan bill ini
-  const orderIds = bill.orderIds?.length ? bill.orderIds : [bill.orderId];
-  for (const oid of orderIds) {
-    await API.updateOrder(oid, { status: 'closed' }).catch(() => {});
-  }
-  await API.updateTable(tableId, { status: 'available', openedAt: null, kasirId: null });
-  renderBill();
+  // Disable tombol untuk cegah double-submit
+  payBtn.disabled    = true;
+  payBtn.textContent = 'Memproses...';
 
-  // Tampilkan modal sukses
-  const detailEl = document.getElementById('successDetail');
-  let html = `<strong>${table.name}</strong><br>`;
-  html += `Total: <strong>${formatRp(bill.total)}</strong><br>`;
-  html += `Metode: <strong>${method === 'cash' ? 'Cash' : 'Debit'}</strong><br>`;
-  if (method === 'cash') {
-    html += `Bayar: ${formatRp(paymentDetail.paid)}<br>`;
-    html += `Kembalian: <strong style="color:var(--success)">${formatRp(paymentDetail.change)}</strong>`;
-  } else {
-    html += `Bank: ${paymentDetail.bankName}<br>`;
-    html += `Kartu: ****-****-****-${paymentDetail.cardLast4}`;
+  try {
+    bill = await API.updateBill(billId, {
+      status: 'paid',
+      paidAt: new Date().toISOString(),
+      paymentMethod: method,
+      paymentDetail,
+    });
+    // Tutup semua order yang terkait dengan bill ini
+    const orderIds = bill.orderIds?.length ? bill.orderIds : [bill.orderId];
+    for (const oid of orderIds) {
+      await API.updateOrder(oid, { status: 'closed' }).catch(() => {});
+    }
+    await API.updateTable(tableId, { status: 'available', openedAt: null, kasirId: null });
+    renderBill();
+
+    // Tampilkan modal sukses
+    const detailEl = document.getElementById('successDetail');
+    let html = `<strong>${table.name}</strong><br>`;
+    html += `Total: <strong>${formatRp(bill.total)}</strong><br>`;
+    html += `Metode: <strong>${method === 'cash' ? 'Cash' : 'Debit'}</strong><br>`;
+    if (method === 'cash') {
+      html += `Bayar: ${formatRp(paymentDetail.paid)}<br>`;
+      html += `Kembalian: <strong style="color:var(--success)">${formatRp(paymentDetail.change)}</strong>`;
+    } else {
+      html += `Bank: ${paymentDetail.bankName}<br>`;
+      html += `Kartu: ****-****-****-${paymentDetail.cardLast4}`;
+    }
+    detailEl.innerHTML = html;
+    document.getElementById('successModal').classList.remove('hidden');
+  } catch (err) {
+    errEl.textContent = err.message || 'Gagal memproses pembayaran.';
+    errEl.classList.remove('hidden');
+    payBtn.disabled    = false;
+    payBtn.textContent = 'Proses Pembayaran';
   }
-  detailEl.innerHTML = html;
-  document.getElementById('successModal').classList.remove('hidden');
 });
 
 // ── Print struk ───────────────────────────────────────────────

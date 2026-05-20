@@ -89,10 +89,16 @@ document.getElementById('modalCancel').addEventListener('click', () => {
 
 document.getElementById('modalVoid').addEventListener('click', () => {
   if (!selectedTableId) return;
-  Modal.confirm('', 'Batalkan Meja', 'Batalkan dan kosongkan meja ini?', async () => {
-    const order = await API.getActiveOrderByTable(selectedTableId).catch(() => null);
-    if (order) await API.updateOrder(order.id, { status: 'cancelled' });
-    await API.updateTable(selectedTableId, { status: 'available', openedAt: null, kasirId: null });
+  Modal.confirm('', 'Tutup Meja', 'Batalkan semua pesanan dan kosongkan meja ini?', async () => {
+    try {
+      // Gunakan endpoint void yang sudah handle semua order + bill sekaligus
+      await API.voidTable(selectedTableId, 'Dibatalkan dari dashboard');
+    } catch (e) {
+      // Fallback manual jika void gagal
+      const order = await API.getActiveOrderByTable(selectedTableId).catch(() => null);
+      if (order) await API.updateOrder(order.id, { status: 'cancelled' }).catch(() => {});
+      await API.updateTable(selectedTableId, { status: 'available', openedAt: null, kasirId: null });
+    }
     document.getElementById('tableModal').classList.add('hidden');
     selectedTableId = null;
     renderTables();

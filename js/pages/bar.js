@@ -1,7 +1,6 @@
 // ===== PAGE: Bar Dashboard =====
 const STATION      = 'bar';
 const STATION_ICON = '🍹';
-const STATION_COLOR = '#1e40af';
 const EMPTY_MSG    = 'Tidak ada pesanan di bar saat ini.';
 
 let activeItems = [];   // order yang masih pending (ditampilkan di grid)

@@ -299,3 +299,18 @@
   background: #dcfce7;
   border-color: #86efac;
 }
+
+/* ── Quick Cash Buttons ── */
+.quick-cash {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .4rem;
+  margin: .5rem 0 .75rem;
+}
+.quick-cash-btn {
+  flex: 1;
+  min-width: calc(50% - .2rem);
+  font-size: .8rem;
+  padding: .4rem .5rem;
+  white-space: nowrap;
+}

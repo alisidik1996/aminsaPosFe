@@ -1,7 +1,6 @@
 // ===== PAGE: Kitchen Dashboard =====
 const STATION      = 'kitchen';
 const STATION_ICON = '🍳';
-const STATION_COLOR = '#92400e';
 const EMPTY_MSG    = 'Tidak ada pesanan di kitchen saat ini.';
 
 let activeItems = [];

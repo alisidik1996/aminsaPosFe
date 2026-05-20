@@ -2,6 +2,16 @@
 const session = requireAdmin();
 if (!session) throw new Error('Not admin');
 
+// ── XSS helper — escape semua data dari server sebelum masuk innerHTML ──
+function escHtml(str) {
+  return String(str ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 document.getElementById('boKasirName').textContent = '' + session.name;
 
 document.getElementById('boLogoutBtn').addEventListener('click', () => {
@@ -74,16 +84,16 @@ function renderMenuTable(items) {
   if (!items.length) { tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:2rem">Tidak ada item</td></tr>'; return; }
   tbody.innerHTML = items.map(item => `
     <tr>
-      <td><img src="${item.image || ''}" class="menu-thumb" onerror="this.style.background='#e2e8f0';this.src=''" /></td>
-      <td><strong>${item.name}</strong></td>
-      <td>${item.category}</td>
-      <td><span class="bo-badge bo-badge-${item.station}">${item.station === 'kitchen' ? 'Kitchen' : 'Bar'}</span></td>
+      <td><img src="${escHtml(item.image || '')}" class="menu-thumb" onerror="this.style.background='#e2e8f0';this.src=''" /></td>
+      <td><strong>${escHtml(item.name)}</strong></td>
+      <td>${escHtml(item.category)}</td>
+      <td><span class="bo-badge bo-badge-${escHtml(item.station)}">${item.station === 'kitchen' ? 'Kitchen' : 'Bar'}</span></td>
       <td>${formatRp(item.price)}</td>
       <td><span class="item-stock ${item.stock <= 5 ? 'stock-low' : item.stock <= 10 ? 'stock-mid' : 'stock-ok'}">${item.stock}</span></td>
       <td><span class="bo-badge ${item.active ? 'bo-badge-active' : 'bo-badge-inactive'}">${item.active ? 'Aktif' : 'Nonaktif'}</span></td>
       <td><div class="bo-actions">
         <button class="btn btn-outline btn-sm" onclick="openMenuModal(${item.id})">Edit</button>
-        <button class="btn btn-danger btn-sm" onclick="deleteMenu(${item.id}, '${item.name.replace(/'/g, "\\'")}')"></button>
+        <button class="btn btn-danger btn-sm" onclick="deleteMenu(${item.id}, '${escHtml(item.name).replace(/'/g, '&#39;')}')">🗑</button>
       </div></td>
     </tr>
   `).join('');
@@ -204,11 +214,11 @@ function renderCategoriesTable(cats) {
   if (!cats.length) { tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--text-muted);padding:2rem">Tidak ada kategori</td></tr>'; return; }
   tbody.innerHTML = cats.map(c => `
     <tr>
-      <td><strong>${c.name}</strong></td>
-      <td><span class="bo-badge bo-badge-${c.station}">${c.station === 'kitchen' ? 'Kitchen' : 'Bar'}</span></td>
+      <td><strong>${escHtml(c.name)}</strong></td>
+      <td><span class="bo-badge bo-badge-${escHtml(c.station)}">${c.station === 'kitchen' ? 'Kitchen' : 'Bar'}</span></td>
       <td><div class="bo-actions">
         <button class="btn btn-outline btn-sm" onclick="openCategoryModal(${c.id})">Edit</button>
-        <button class="btn btn-danger btn-sm" onclick="deleteCategory(${c.id}, '${c.name.replace(/'/g, "\\'")}')"></button>
+        <button class="btn btn-danger btn-sm" onclick="deleteCategory(${c.id}, '${escHtml(c.name).replace(/'/g, '&#39;')}')">🗑</button>
       </div></td>
     </tr>
   `).join('');
@@ -337,9 +347,9 @@ function renderVoidTables() {
     return;
   }
   grid.innerHTML = activeTables.map(t => `
-    <div class="void-table-card" onclick="openVoidModal(${t.id}, '${t.name}')">
-      <div class="void-table-icon"></div>
-      <div class="void-table-name">${t.name}</div>
+    <div class="void-table-card" onclick="openVoidModal(${t.id}, '${escHtml(t.name).replace(/'/g, '&#39;')}')">
+      <div class="void-table-icon">🪑</div>
+      <div class="void-table-name">${escHtml(t.name)}</div>
       <div class="void-table-time">${getElapsed(t.openedAt)}</div>
     </div>
   `).join('');
@@ -354,11 +364,11 @@ function renderVoidHistory() {
   tbody.innerHTML = voidHistory.map(v => `
     <tr>
       <td>${v.id}</td>
-      <td>${v.table_name}</td>
+      <td>${escHtml(v.table_name)}</td>
       <td>${formatRp(v.total)}</td>
-      <td>${v.kasir_name}</td>
+      <td>${escHtml(v.kasir_name)}</td>
       <td style="font-size:.8rem">${formatDate(v.created_at)}</td>
-      <td style="font-size:.85rem;color:var(--text-muted)">${v.note || '-'}</td>
+      <td style="font-size:.85rem;color:var(--text-muted)">${escHtml(v.note || '-')}</td>
     </tr>
   `).join('');
 }
@@ -400,12 +410,12 @@ function renderUsersTable(users) {
   tbody.innerHTML = users.map(u => `
     <tr>
       <td>${u.id}</td>
-      <td><code>${u.username}</code></td>
-      <td>${u.name}</td>
-      <td><span class="bo-badge bo-badge-${u.role}">${u.role}</span></td>
+      <td><code>${escHtml(u.username)}</code></td>
+      <td>${escHtml(u.name)}</td>
+      <td><span class="bo-badge bo-badge-${escHtml(u.role)}">${escHtml(u.role)}</span></td>
       <td><div class="bo-actions">
         <button class="btn btn-outline btn-sm" onclick="openUserModal(${u.id})">Edit</button>
-        <button class="btn btn-danger btn-sm" onclick="deleteUser(${u.id}, '${u.username.replace(/'/g, "\\'")}')"></button>
+        <button class="btn btn-danger btn-sm" onclick="deleteUser(${u.id}, '${escHtml(u.username).replace(/'/g, '&#39;')}')">🗑</button>
       </div></td>
     </tr>
   `).join('');
@@ -558,19 +568,19 @@ function renderIngredientsTable(items) {
     const stockClass = !item.active ? 'stock-low' : isLow ? 'stock-low' : parseFloat(item.stock) <= parseFloat(item.min_stock) * 2 ? 'stock-mid' : 'stock-ok';
     return `
     <tr>
-      <td><strong>${item.name}</strong></td>
-      <td><span class="bo-badge" style="background:#f1f5f9;color:#475569">${item.unit}</span></td>
+      <td><strong>${escHtml(item.name)}</strong></td>
+      <td><span class="bo-badge" style="background:#f1f5f9;color:#475569">${escHtml(item.unit)}</span></td>
       <td>
-        <span class="item-stock ${stockClass}">${parseFloat(item.stock).toLocaleString('id-ID')} ${item.unit}</span>
+        <span class="item-stock ${stockClass}">${parseFloat(item.stock).toLocaleString('id-ID')} ${escHtml(item.unit)}</span>
         ${isLow ? '<span style="color:var(--danger);font-size:.75rem;margin-left:.3rem">⚠ Rendah</span>' : ''}
       </td>
-      <td style="color:var(--text-muted);font-size:.88rem">${parseFloat(item.min_stock).toLocaleString('id-ID')} ${item.unit}</td>
+      <td style="color:var(--text-muted);font-size:.88rem">${parseFloat(item.min_stock).toLocaleString('id-ID')} ${escHtml(item.unit)}</td>
       <td style="font-size:.88rem">${item.cost_per_unit ? 'Rp ' + parseInt(item.cost_per_unit).toLocaleString('id-ID') : '—'}</td>
       <td><span class="bo-badge ${item.active ? 'bo-badge-active' : 'bo-badge-inactive'}">${item.active ? 'Aktif' : 'Nonaktif'}</span></td>
       <td><div class="bo-actions">
         <button class="btn btn-outline btn-sm" onclick="openAdjustStockModal(${item.id})">Sesuaikan Stok</button>
         <button class="btn btn-outline btn-sm" onclick="openIngredientModal(${item.id})">Edit</button>
-        <button class="btn btn-danger btn-sm" onclick="deleteIngredient(${item.id}, '${item.name.replace(/'/g, "\\'")}')">🗑</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteIngredient(${item.id}, '${escHtml(item.name).replace(/'/g, '&#39;')}')">🗑</button>
       </div></td>
     </tr>`;
   }).join('');
@@ -707,10 +717,10 @@ function renderRecipeCards(recipes) {
       : r.estimated_stock <= 5 ? '#d97706' : 'var(--success)';
     const ingList = r.ingredients.map(i =>
       `<div class="recipe-ing-row">
-        <span class="recipe-ing-name">${i.ingredient_name}</span>
-        <span class="recipe-ing-qty">${parseFloat(i.quantity).toLocaleString('id-ID')} ${i.unit}</span>
+        <span class="recipe-ing-name">${escHtml(i.ingredient_name)}</span>
+        <span class="recipe-ing-qty">${parseFloat(i.quantity).toLocaleString('id-ID')} ${escHtml(i.unit)}</span>
         <span class="recipe-ing-stock" style="color:${parseFloat(i.ingredient_stock) < parseFloat(i.quantity) ? 'var(--danger)' : 'var(--text-muted)'}">
-          (stok: ${parseFloat(i.ingredient_stock).toLocaleString('id-ID')} ${i.ingredient_unit})
+          (stok: ${parseFloat(i.ingredient_stock).toLocaleString('id-ID')} ${escHtml(i.ingredient_unit)})
         </span>
       </div>`
     ).join('');
@@ -718,7 +728,7 @@ function renderRecipeCards(recipes) {
       <div class="recipe-card">
         <div class="recipe-card-header">
           <div>
-            <div class="recipe-menu-name">${r.menu_name}</div>
+            <div class="recipe-menu-name">${escHtml(r.menu_name)}</div>
             <div class="recipe-yield">Hasil: ${r.yield_count} porsi per resep</div>
           </div>
           <div class="recipe-stock-badge" style="background:${stockColor}20;color:${stockColor};border:1.5px solid ${stockColor}40">
@@ -729,10 +739,10 @@ function renderRecipeCards(recipes) {
         <div class="recipe-ing-list">
           ${ingList || '<div style="color:var(--text-muted);font-size:.85rem;padding:.5rem 0">Belum ada bahan</div>'}
         </div>
-        ${r.notes ? `<div class="recipe-notes">📝 ${r.notes}</div>` : ''}
+        ${r.notes ? `<div class="recipe-notes">📝 ${escHtml(r.notes)}</div>` : ''}
         <div class="recipe-card-actions">
           <button class="btn btn-outline btn-sm" onclick="openRecipeModal(${r.id})">Edit Resep</button>
-          <button class="btn btn-danger btn-sm" onclick="deleteRecipe(${r.id}, '${r.menu_name.replace(/'/g, "\\'")}')">🗑</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteRecipe(${r.id}, '${escHtml(r.menu_name).replace(/'/g, '&#39;')}')">🗑</button>
         </div>
       </div>`;
   }).join('');
