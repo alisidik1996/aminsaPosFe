@@ -68,6 +68,7 @@ const API = {
   getTables:   ()          => http('GET',   '/tables'),
   getTable:    (id)        => http('GET',   `/tables/${id}`),
   updateTable: (id, data)  => http('PATCH', `/tables/${id}`, data),
+  switchTable: (fromId, toId) => http('POST', '/tables/switch', { fromId, toId }),
 
   // ── ORDERS ──────────────────────────────────────────────
   getOrderByTable:       (tableId) => http('GET',   `/orders/table/${tableId}`),

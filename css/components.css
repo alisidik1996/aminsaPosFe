@@ -17,6 +17,8 @@
 .btn-secondary:hover { background: #cbd5e1; }
 .btn-outline   { background: transparent; border: 1.5px solid var(--border); color: var(--text); }
 .btn-outline:hover   { background: var(--bg); }
+.btn-warning   { background: var(--warning);  color: #fff; }
+.btn-warning:hover   { background: #b45309; }
 .btn-full { width: 100%; }
 .btn-sm   { padding: .35rem .8rem; font-size: .8rem; }
 .btn-lg   { padding: .75rem 1.4rem; font-size: 1rem; }
@@ -157,4 +159,20 @@
 .send-summary-item {
   display: flex; justify-content: space-between;
   padding: .4rem 0; border-bottom: 1px solid var(--border); font-size: .88rem;
+}
+
+/* ── Switch table picker ── */
+.switch-table-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+  gap: .6rem; margin-top: .5rem; max-height: 260px; overflow-y: auto;
+}
+.switch-table-btn {
+  padding: .65rem .5rem; border-radius: 10px;
+  border: 2px solid var(--border); background: var(--surface);
+  font-size: .88rem; font-weight: 700; cursor: pointer;
+  transition: all .15s; text-align: center; color: var(--text);
+}
+.switch-table-btn:hover {
+  border-color: var(--primary); background: var(--primary); color: #fff;
+  transform: translateY(-2px);
 }

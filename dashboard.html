@@ -34,7 +34,20 @@
       <div class="modal-actions">
         <button class="btn btn-secondary" id="modalCancel">Batal</button>
         <button class="btn btn-danger btn-sm hidden" id="modalVoid">Tutup Meja</button>
+        <button class="btn btn-warning btn-sm hidden" id="modalSwitch">Pindah Meja</button>
         <button class="btn btn-primary" id="modalConfirm">Buka Meja</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Pilih Meja Tujuan -->
+  <div class="modal-overlay hidden" id="switchModal">
+    <div class="modal">
+      <h3>Pindah ke Meja</h3>
+      <p id="switchModalDesc">Pilih meja tujuan yang tersedia:</p>
+      <div class="switch-table-grid" id="switchTableGrid"></div>
+      <div class="modal-actions" style="margin-top:1.25rem">
+        <button class="btn btn-secondary" id="switchCancel">Batal</button>
       </div>
     </div>
   </div>
