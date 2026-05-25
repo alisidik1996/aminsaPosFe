@@ -34,6 +34,9 @@ async function init() {
   CATEGORIES = await API.getMenuCategories();
   MENU_DATA  = await API.getMenu();
 
+  // Beri tahu Cart tentang stok terkini
+  Cart.updateStock(MENU_DATA);
+
   renderCategories();
   renderMenu();
   Cart.render(
@@ -67,6 +70,7 @@ function renderCategories() {
     btn.addEventListener('click', async () => {
       activeCategory = cat;
       MENU_DATA = await API.getMenu(cat);
+      Cart.updateStock(MENU_DATA);   // update stok setelah ganti kategori
       renderCategories();
       renderMenu();
     });
@@ -81,7 +85,10 @@ function renderMenu(filter = '') {
     const q = filter.toLowerCase();
     items = items.filter(m => m.name.toLowerCase().includes(q));
   }
-  MenuGrid.render(document.getElementById('menuGrid'), items, (item) => Cart.add(item));
+  MenuGrid.render(document.getElementById('menuGrid'), items, (item) => {
+    const err = Cart.add(item);
+    if (err) Modal.alert('', 'Stok Tidak Cukup', err);
+  });
 }
 
 document.getElementById('searchMenu').addEventListener('input', function () {
