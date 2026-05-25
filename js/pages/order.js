@@ -166,9 +166,10 @@ async function sendOrder() {
       bill = await API.addOrderToBill(appendToBillId, orderId);
       sessionStorage.removeItem('pos_append_to_bill');
     } else {
+      // Tidak kirim items/price — backend ambil langsung dari DB (price trust fix)
       bill = await API.createBill({
         orderId, tableId, tableName: table.name,
-        items, note, kasirId: session.id, kasirName: session.name,
+        note, kasirId: session.id, kasirName: session.name,
       });
     }
     sessionStorage.setItem('pos_current_bill', bill.id);
