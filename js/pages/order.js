@@ -149,19 +149,9 @@ async function sendOrder() {
   sendBtn.textContent = 'Mengirim...';
 
   try {
-    await API.updateOrder(orderId, { items, note, status: 'sent' });
-
-    // Kurangi stok — ambil stok terkini dari server untuk menghindari race condition
-    for (const item of items) {
-      try {
-        const freshMenu = await API.getMenu().then(list => list.find(m => m.id === item.id));
-        if (freshMenu) {
-          await API.updateMenuStock(item.id, Math.max(0, freshMenu.stock - item.qty));
-        }
-      } catch (e) {
-        console.warn('Gagal update stok untuk item', item.id, e);
-      }
-    }
+    // Satu request atomik ke backend:
+    // update status 'sent' + simpan items + kurangi stok dalam 1 transaksi DB
+    await API.sendOrder(orderId, { items, note });
 
     const appendToBillId = parseInt(sessionStorage.getItem('pos_append_to_bill'));
     let bill;

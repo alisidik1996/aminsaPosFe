@@ -77,6 +77,8 @@ const API = {
   getOrder:              (id)      => http('GET',   `/orders/${id}`),
   createOrder:           (data)    => http('POST',  '/orders', data),
   updateOrder:           (id, data)=> http('PATCH', `/orders/${id}`, data),
+  // Kirim order secara atomik — update status + kurangi stok dalam 1 transaksi
+  sendOrder:             (id, data)=> http('POST',  `/orders/${id}/send`, data),
 
   // ── BILLS ───────────────────────────────────────────────
   getBillByOrder:  (orderId) => http('GET',  `/bills/order/${orderId}`),
