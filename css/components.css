@@ -314,3 +314,59 @@
   padding: .4rem .5rem;
   white-space: nowrap;
 }
+
+/* ── Nav Station Links (Dashboard) ── */
+.nav-station-links {
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+}
+
+.nav-station-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+  padding: .3rem .75rem;
+  border-radius: 20px;
+  font-size: .8rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all .15s;
+  white-space: nowrap;
+  border: 1.5px solid transparent;
+}
+
+.nav-station-btn.kitchen {
+  background: #fff7ed;
+  color: #92400e;
+  border-color: #fed7aa;
+}
+.nav-station-btn.kitchen:hover {
+  background: #ffedd5;
+  border-color: #f97316;
+}
+
+.nav-station-btn.bar {
+  background: #eff6ff;
+  color: #1e40af;
+  border-color: #bfdbfe;
+}
+.nav-station-btn.bar:hover {
+  background: #dbeafe;
+  border-color: #3b82f6;
+}
+
+.nav-station-btn.service {
+  background: #f0fdf4;
+  color: #15803d;
+  border-color: #bbf7d0;
+}
+.nav-station-btn.service:hover {
+  background: #dcfce7;
+  border-color: #22c55e;
+}
+
+@media (max-width: 640px) {
+  .nav-station-links { gap: .25rem; }
+  .nav-station-btn   { padding: .25rem .5rem; font-size: .72rem; }
+}

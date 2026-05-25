@@ -11,7 +11,19 @@
 <body class="app-page">
   <nav class="navbar">
     <div class="nav-brand">Waltie's Rooftop Cafe</div>
-    <div class="nav-center"><span id="currentDate"></span></div>
+    <div class="nav-center">
+      <div class="nav-station-links">
+        <a href="kitchen.html" class="nav-station-btn kitchen" target="_blank" title="Buka Kitchen Dashboard">
+          🍳 Kitchen
+        </a>
+        <a href="bar.html" class="nav-station-btn bar" target="_blank" title="Buka Bar Dashboard">
+          🍹 Bar
+        </a>
+        <a href="services.html" class="nav-station-btn service" target="_blank" title="Buka Service Dashboard">
+          👨‍🍳 Service
+        </a>
+      </div>
+    </div>
     <div class="nav-right">
       <span class="badge-kasir" id="kasirName"></span>
       <button class="btn btn-outline btn-sm" id="logoutBtn">Logout</button>
@@ -20,9 +32,12 @@
   <div class="container">
     <div class="page-header">
       <h2>Pilih Meja</h2>
-      <div class="legend">
-        <span class="dot dot-available"></span> Tersedia
-        <span class="dot dot-occupied"></span> Terisi
+      <div style="display:flex;align-items:center;gap:1rem">
+        <span id="currentDate" style="font-size:.85rem;color:var(--text-muted)"></span>
+        <div class="legend">
+          <span class="dot dot-available"></span> Tersedia
+          <span class="dot dot-occupied"></span> Terisi
+        </div>
       </div>
     </div>
     <div class="table-grid" id="tableGrid"></div>
