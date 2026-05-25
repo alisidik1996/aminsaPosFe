@@ -59,12 +59,15 @@
 
     <!-- ══ Tab: Stok ══ -->
     <section class="bo-tab" id="tab-stock">
+      <!-- Kartu ringkasan -->
+      <div id="stockDashboard" style="margin-bottom:1.25rem"></div>
       <div class="bo-toolbar">
         <input type="text" id="stockSearch" placeholder="Cari item..." class="bo-search" />
+        <button class="btn btn-outline btn-sm" id="syncStockBtn">↻ Sync dari Bahan</button>
       </div>
       <div class="bo-table-wrap">
         <table class="bo-table">
-          <thead><tr><th>Nama</th><th>Kategori</th><th>Stok Saat Ini</th><th>Buffer Stok</th><th>Aksi</th></tr></thead>
+          <thead><tr><th>Nama</th><th>Kategori</th><th>Stok Saat Ini</th><th>Resep</th><th>Buffer Stok</th><th>Aksi</th></tr></thead>
           <tbody id="stockTbody"></tbody>
         </table>
       </div>

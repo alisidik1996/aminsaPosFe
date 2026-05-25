@@ -275,30 +275,82 @@ async function deleteCategory(id, name) {
 }
 
 // ══ STOCK ═════════════════════════════════════════════════════
-let allStockItems = [];
+let allStockItems  = [];
+let stockSummary   = null;
+
 async function loadStock() {
   try {
-    allStockItems = await API.getAllMenu();
+    stockSummary  = await API.getStockSummary();
+    allStockItems = stockSummary.menu;
+    renderStockDashboard();
     renderStockTable(allStockItems);
   } catch (err) {
     Modal.alert('', 'Gagal Memuat', 'Gagal memuat data stok: ' + err.message);
   }
 }
 
+// ── Kartu ringkasan stok ──────────────────────────────────────
+function renderStockDashboard() {
+  const el = document.getElementById('stockDashboard');
+  if (!el || !stockSummary) return;
+  const { totalMenu, totalIngredients, totalRecipes, lowStockCount } = stockSummary;
+  el.innerHTML = `
+    <div class="stock-stat-cards">
+      <div class="stock-stat-card">
+        <div class="stock-stat-num">${totalMenu}</div>
+        <div class="stock-stat-label">Total Item Menu</div>
+      </div>
+      <div class="stock-stat-card">
+        <div class="stock-stat-num">${totalIngredients}</div>
+        <div class="stock-stat-label">Bahan Baku</div>
+      </div>
+      <div class="stock-stat-card">
+        <div class="stock-stat-num">${totalRecipes}</div>
+        <div class="stock-stat-label">Resep Terdaftar</div>
+      </div>
+      <div class="stock-stat-card ${lowStockCount > 0 ? 'stock-stat-danger' : ''}">
+        <div class="stock-stat-num">${lowStockCount}</div>
+        <div class="stock-stat-label">Bahan Stok Rendah</div>
+      </div>
+    </div>
+    ${lowStockCount > 0 ? `
+      <div class="stock-alert">
+        ⚠️ <strong>${lowStockCount} bahan baku</strong> di bawah stok minimum:
+        ${stockSummary.lowStockIngredients.map(i =>
+          `<span class="stock-alert-chip">${escHtml(i.name)} (${parseFloat(i.stock).toLocaleString('id-ID')} ${escHtml(i.unit)})</span>`
+        ).join('')}
+      </div>` : ''}
+  `;
+}
+
 function renderStockTable(items) {
   const tbody = document.getElementById('stockTbody');
-  if (!items.length) { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:2rem">Tidak ada item</td></tr>'; return; }
+  if (!items.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:2rem">Tidak ada item</td></tr>';
+    return;
+  }
   tbody.innerHTML = items.map(item => {
-    const buffer = item.buffer_stock || 5;
+    const buffer     = item.buffer_stock || 5;
+    const stockClass = item.stock <= buffer ? 'stock-low' : item.stock <= buffer * 2 ? 'stock-mid' : 'stock-ok';
+    const hasRecipe  = item.hasRecipe;
+    const mismatch   = item.stockMismatch;
     return `
     <tr>
-      <td><strong>${item.name}</strong></td>
-      <td>${item.category}</td>
-      <td><span class="item-stock ${item.stock <= buffer ? 'stock-low' : item.stock <= buffer * 2 ? 'stock-mid' : 'stock-ok'}">${item.stock}</span></td>
+      <td><strong>${escHtml(item.name)}</strong></td>
+      <td>${escHtml(item.category)}</td>
+      <td>
+        <span class="item-stock ${stockClass}">${item.stock}</span>
+        ${mismatch ? `<span title="Stok tidak sinkron dengan bahan baku" style="color:var(--warning);margin-left:.3rem;cursor:help">⚠</span>` : ''}
+      </td>
+      <td>
+        ${hasRecipe
+          ? `<span class="bo-badge bo-badge-active">Ada Resep</span>
+             <span style="font-size:.78rem;color:var(--text-muted);margin-left:.3rem">est. ${item.estimatedStock} porsi</span>`
+          : `<span class="bo-badge bo-badge-inactive">Tanpa Resep</span>`}
+      </td>
       <td><span class="bo-badge" style="background:#f1f5f9;color:#64748b">${buffer}</span></td>
-      <td><button class="btn btn-outline btn-sm" onclick="openStockModal(${item.id})">Edit</button></td>
-    </tr>
-  `;
+      <td><button class="btn btn-outline btn-sm" onclick="openStockModal(${item.id})">Edit Stok</button></td>
+    </tr>`;
   }).join('');
 }
 
@@ -307,22 +359,35 @@ document.getElementById('stockSearch').addEventListener('input', function () {
   renderStockTable(allStockItems.filter(m => m.name.toLowerCase().includes(q)));
 });
 
+// Tombol sync semua stok dari bahan
+document.getElementById('syncStockBtn')?.addEventListener('click', async () => {
+  const btn = document.getElementById('syncStockBtn');
+  btn.disabled = true; btn.textContent = 'Menyinkronkan...';
+  try {
+    const result = await API.syncAllStock();
+    await loadStock();
+    Modal.alert('', 'Sync Selesai', `${result.synced} menu berhasil disinkronkan dari bahan baku.`);
+  } catch (err) { Modal.alert('', 'Gagal', err.message); }
+  finally { btn.disabled = false; btn.textContent = '↻ Sync dari Bahan'; }
+});
+
 let editingStockItemId = null;
 function openStockModal(id) {
   editingStockItemId = id;
   const item = allStockItems.find(m => m.id === id);
   if (!item) return;
   document.getElementById('smItemName').value = item.name;
-  document.getElementById('smStock').value = item.stock;
-  document.getElementById('smBuffer').value = item.buffer_stock || 5;
+  document.getElementById('smStock').value    = item.stock;
+  document.getElementById('smBuffer').value   = item.buffer_stock || 5;
   document.getElementById('stockModal').classList.remove('hidden');
 }
 
-document.getElementById('stockModalCancel').addEventListener('click', () => document.getElementById('stockModal').classList.add('hidden'));
+document.getElementById('stockModalCancel').addEventListener('click', () =>
+  document.getElementById('stockModal').classList.add('hidden'));
 
 document.getElementById('stockModalForm').addEventListener('submit', async (e) => {
   e.preventDefault();
-  const stock = parseInt(document.getElementById('smStock').value);
+  const stock  = parseInt(document.getElementById('smStock').value);
   const buffer = parseInt(document.getElementById('smBuffer').value);
   if (isNaN(stock) || stock < 0 || isNaN(buffer) || buffer < 0) {
     Modal.alert('', 'Input Tidak Valid', 'Stok dan buffer harus angka >= 0');
@@ -332,12 +397,10 @@ document.getElementById('stockModalForm').addEventListener('submit', async (e) =
   saveBtn.disabled = true; saveBtn.textContent = 'Menyimpan...';
   try {
     await API.updateMenuStock(editingStockItemId, stock);
-    // TODO: jika ada endpoint untuk buffer_stock, update di sini
     const item = allStockItems.find(m => m.id === editingStockItemId);
     if (item) { item.stock = stock; item.buffer_stock = buffer; }
     document.getElementById('stockModal').classList.add('hidden');
-    renderStockTable(allStockItems);
-    Modal.alert('', 'Berhasil', 'Stok dan buffer berhasil diupdate.');
+    await loadStock();   // reload untuk update estimasi & mismatch
   } catch (err) { Modal.alert('', 'Gagal', err.message); }
   finally { saveBtn.disabled = false; saveBtn.textContent = 'Simpan'; }
 });

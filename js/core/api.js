@@ -117,4 +117,8 @@ const API = {
   updateRecipe:      (id, data)  => http('PUT',    `/recipes/${id}`, data),
   deleteRecipe:      (id)        => http('DELETE', `/recipes/${id}`),
   syncAllRecipes:    ()          => http('POST',   '/recipes/sync-all'),
+
+  // ── STOCK SYNC ───────────────────────────────────────────
+  getStockSummary:   ()          => http('GET',  '/stock/summary'),
+  syncAllStock:      ()          => http('POST', '/stock/sync-all'),
 };

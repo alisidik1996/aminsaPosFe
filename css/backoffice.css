@@ -537,3 +537,67 @@
 .preview-label { color: var(--text-muted); }
 .preview-value { font-size: 1.3rem; font-weight: 800; }
 .preview-unit  { color: var(--text-muted); }
+
+/* ── Stock Dashboard Cards ── */
+.stock-stat-cards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: .75rem;
+  margin-bottom: 1rem;
+}
+
+.stock-stat-card {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  text-align: center;
+  box-shadow: var(--shadow);
+}
+
+.stock-stat-card.stock-stat-danger {
+  border-color: var(--danger);
+  background: #fff5f5;
+}
+
+.stock-stat-num {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--primary);
+  line-height: 1;
+}
+
+.stock-stat-danger .stock-stat-num { color: var(--danger); }
+
+.stock-stat-label {
+  font-size: .78rem;
+  color: var(--text-muted);
+  margin-top: .3rem;
+}
+
+.stock-alert {
+  background: #fff7ed;
+  border: 1.5px solid #fed7aa;
+  border-radius: 10px;
+  padding: .75rem 1rem;
+  font-size: .85rem;
+  color: #92400e;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .4rem;
+  margin-bottom: .5rem;
+}
+
+.stock-alert-chip {
+  background: #ffedd5;
+  border: 1px solid #fed7aa;
+  border-radius: 12px;
+  padding: .15rem .6rem;
+  font-size: .78rem;
+  font-weight: 600;
+}
+
+@media (max-width: 900px) {
+  .stock-stat-cards { grid-template-columns: repeat(2, 1fr); }
+}
