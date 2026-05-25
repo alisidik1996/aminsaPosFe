@@ -69,14 +69,19 @@ let allMenuItems = [];
 let allCategories = [];
 
 async function loadMenu() {
-  allMenuItems = await API.getAllMenu();   // termasuk item nonaktif
-  allCategories = await API.getCategories();
-  
-  const cats = [...new Set(allMenuItems.map(m => m.category))];
-  const sel  = document.getElementById('menuCatFilter');
-  sel.innerHTML = '<option value="">Semua Kategori</option>';
-  cats.forEach(c => sel.innerHTML += `<option value="${c}">${c}</option>`);
-  renderMenuTable(allMenuItems);
+  try {
+    [allMenuItems, allCategories] = await Promise.all([
+      API.getAllMenu(),
+      API.getCategories(),
+    ]);
+    const cats = [...new Set(allMenuItems.map(m => m.category))];
+    const sel  = document.getElementById('menuCatFilter');
+    sel.innerHTML = '<option value="">Semua Kategori</option>';
+    cats.forEach(c => sel.innerHTML += `<option value="${c}">${escHtml(c)}</option>`);
+    renderMenuTable(allMenuItems);
+  } catch (err) {
+    Modal.alert('', 'Gagal Memuat', 'Gagal memuat data menu: ' + err.message);
+  }
 }
 
 function renderMenuTable(items) {
@@ -205,8 +210,12 @@ async function deleteMenu(id, name) {
 
 // ══ CATEGORIES ════════════════════════════════════════════════
 async function loadCategories() {
-  allCategories = await API.getCategories();
-  renderCategoriesTable(allCategories);
+  try {
+    allCategories = await API.getCategories();
+    renderCategoriesTable(allCategories);
+  } catch (err) {
+    Modal.alert('', 'Gagal Memuat', 'Gagal memuat kategori: ' + err.message);
+  }
 }
 
 function renderCategoriesTable(cats) {
@@ -268,8 +277,12 @@ async function deleteCategory(id, name) {
 // ══ STOCK ═════════════════════════════════════════════════════
 let allStockItems = [];
 async function loadStock() {
-  allStockItems = await API.getAllMenu();   // termasuk item nonaktif
-  renderStockTable(allStockItems);
+  try {
+    allStockItems = await API.getAllMenu();
+    renderStockTable(allStockItems);
+  } catch (err) {
+    Modal.alert('', 'Gagal Memuat', 'Gagal memuat data stok: ' + err.message);
+  }
 }
 
 function renderStockTable(items) {
@@ -334,10 +347,16 @@ let activeTables = [];
 let voidHistory = [];
 
 async function loadVoid() {
-  activeTables = (await API.getTables()).filter(t => t.status === 'occupied');
-  voidHistory = await API.getVoidHistory();
-  renderVoidTables();
-  renderVoidHistory();
+  try {
+    [activeTables, voidHistory] = await Promise.all([
+      API.getTables().then(t => t.filter(t => t.status === 'occupied')),
+      API.getVoidHistory(),
+    ]);
+    renderVoidTables();
+    renderVoidHistory();
+  } catch (err) {
+    Modal.alert('', 'Gagal Memuat', 'Gagal memuat data void: ' + err.message);
+  }
 }
 
 function renderVoidTables() {
@@ -400,8 +419,12 @@ document.getElementById('voidModalConfirm').addEventListener('click', async () =
 // ══ USERS ═════════════════════════════════════════════════════
 let allUsers = [];
 async function loadUsers() {
-  allUsers = await API.getUsers();
-  renderUsersTable(allUsers);
+  try {
+    allUsers = await API.getUsers();
+    renderUsersTable(allUsers);
+  } catch (err) {
+    Modal.alert('', 'Gagal Memuat', 'Gagal memuat data user: ' + err.message);
+  }
 }
 
 function renderUsersTable(users) {
@@ -444,12 +467,23 @@ document.getElementById('userForm').addEventListener('submit', async (e) => {
   const role     = document.getElementById('uRole').value;
   const data     = { username, name, role };
   if (password) data.password = password;
+
+  const saveBtn = e.target.querySelector('button[type="submit"]');
+  saveBtn.disabled = true; saveBtn.textContent = 'Menyimpan...';
   try {
-    if (editingUserId) await API.updateUser(editingUserId, data);
-    else { if (!password) { Modal.alert('', 'Password Wajib', 'Password wajib diisi untuk user baru.'); return; } await API.addUser(data); }
+    if (editingUserId) {
+      await API.updateUser(editingUserId, data);
+    } else {
+      if (!password) { Modal.alert('', 'Password Wajib', 'Password wajib diisi untuk user baru.'); return; }
+      await API.addUser(data);
+    }
     document.getElementById('userModal').classList.add('hidden');
     await loadUsers();
-  } catch (err) { Modal.alert('', 'Gagal', err.message); }
+  } catch (err) {
+    Modal.alert('', 'Gagal', err.message);
+  } finally {
+    saveBtn.disabled = false; saveBtn.textContent = 'Simpan';
+  }
 });
 
 async function deleteUser(id, username) {
@@ -553,8 +587,12 @@ document.getElementById('settingsForm').addEventListener('submit', async (e) => 
 let allIngredients = [];
 
 async function loadIngredients() {
-  allIngredients = await API.getIngredients();
-  renderIngredientsTable(allIngredients);
+  try {
+    allIngredients = await API.getIngredients();
+    renderIngredientsTable(allIngredients);
+  } catch (err) {
+    Modal.alert('', 'Gagal Memuat', 'Gagal memuat bahan baku: ' + err.message);
+  }
 }
 
 function renderIngredientsTable(items) {
@@ -694,12 +732,16 @@ let allRecipes = [];
 let allMenuForRecipe = [];
 
 async function loadRecipes() {
-  [allRecipes, allMenuForRecipe, allIngredients] = await Promise.all([
-    API.getRecipes(),
-    API.getAllMenu(),   // termasuk item nonaktif agar resep bisa dibuat untuk semua menu
-    API.getIngredients(),
-  ]);
-  renderRecipeCards(allRecipes);
+  try {
+    [allRecipes, allMenuForRecipe, allIngredients] = await Promise.all([
+      API.getRecipes(),
+      API.getAllMenu(),
+      API.getIngredients(),
+    ]);
+    renderRecipeCards(allRecipes);
+  } catch (err) {
+    Modal.alert('', 'Gagal Memuat', 'Gagal memuat resep: ' + err.message);
+  }
 }
 
 function renderRecipeCards(recipes) {
@@ -928,6 +970,14 @@ async function deleteRecipe(id, menuName) {
 }
 
 // Expose ke global scope untuk onclick di HTML
+window.openMenuModal          = openMenuModal;
+window.deleteMenu             = deleteMenu;
+window.openCategoryModal      = openCategoryModal;
+window.deleteCategory         = deleteCategory;
+window.openStockModal         = openStockModal;
+window.openVoidModal          = openVoidModal;
+window.openUserModal          = openUserModal;
+window.deleteUser             = deleteUser;
 window.openIngredientModal    = openIngredientModal;
 window.openAdjustStockModal   = openAdjustStockModal;
 window.deleteIngredient       = deleteIngredient;
